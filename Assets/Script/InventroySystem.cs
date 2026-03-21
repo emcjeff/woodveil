@@ -1,29 +1,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using UnityEditor.Animations;
-using UnityEditor.Build.Content;
-
 using UnityEngine;
 
 public class InventorySystem : MonoBehaviour
 {
-
     public static InventorySystem Instance { get; set; }
 
     public GameObject inventoryScreenUI;
-
     public List<GameObject> slotList = new List<GameObject>();
-
     public List<string> itemList = new List<string>();
 
-    private GameObject itemToAdd;
-    private GameObject whatSlotToEquip;
-
     public bool isOpen;
-    //public bool isFull;
-
 
     private void Awake()
     {
@@ -37,111 +25,85 @@ public class InventorySystem : MonoBehaviour
         }
     }
 
-
     void Start()
     {
         isOpen = false;
         PopulateSlotList();
         Cursor.visible = false;
-
-        
     }
 
     private void PopulateSlotList()
     {
+        slotList.Clear();
         foreach (Transform child in inventoryScreenUI.transform)
         {
             if (child.CompareTag("Slot"))
             {
                 slotList.Add(child.gameObject);
-
             }
-
         }
-
     }
 
-
-
-void Update()
-{
-    if (Input.GetKeyDown(KeyCode.I) && !isOpen)
+    void Update()
     {
-        Debug.Log("i is pressed");
-        inventoryScreenUI.SetActive(true);
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-
-        SelectionManager.Instance.DisableSelection();
-        SelectionManager.Instance.GetComponent<SelectionManager>().enabled = false;
-
-        isOpen = true;
-    }
-    else if (Input.GetKeyDown(KeyCode.I) && isOpen)
-    {
-        inventoryScreenUI.SetActive(false);
-
-        if (!CraftingSystem.Instance.isOpen)
+        if (Input.GetKeyDown(KeyCode.I) && !isOpen)
         {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            SelectionManager.Instance.EnableSelection();
-            SelectionManager.Instance.GetComponent<SelectionManager>().enabled = false;
+            inventoryScreenUI.SetActive(true);
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
+            SelectionManager.Instance.DisableSelection();
+            SelectionManager.Instance.enabled = false; 
+
+            isOpen = true;
         }
+        else if (Input.GetKeyDown(KeyCode.I) && isOpen)
+        {
+            inventoryScreenUI.SetActive(false);
+            isOpen = false;
 
-        isOpen = false;
+            if (!CraftingSystem.Instance.isOpen)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+
+                SelectionManager.Instance.EnableSelection();
+                SelectionManager.Instance.enabled = true; // Crucial fix
+            }
+        }
     }
-}
-
 
     public void AddToInventory(string itemName)
     {
-        whatSlotToEquip = FindNextEmptySlot();
-        itemToAdd = Instantiate(Resources.Load<GameObject>(itemName), whatSlotToEquip.transform.position, whatSlotToEquip.transform.rotation);
-        itemToAdd.transform.SetParent(whatSlotToEquip.transform);
-        itemList.Add(itemName);
+        GameObject whatSlotToEquip = FindNextEmptySlot();
+        
+        if (whatSlotToEquip != null)
+        {
+            GameObject itemToAdd = Instantiate(Resources.Load<GameObject>(itemName), whatSlotToEquip.transform.position, whatSlotToEquip.transform.rotation);
+            itemToAdd.transform.SetParent(whatSlotToEquip.transform);
+            itemList.Add(itemName);
+        }
     }
-
-    //public bool CheckIfFull => false;
 
     private GameObject FindNextEmptySlot()
     {
-        //throw new NotImplementedException();
-
         foreach (GameObject slot in slotList)
         {
             if (slot.transform.childCount == 0)
             {
                 return slot;
-
             }
-
         }
-        return new GameObject();
-
+        return null; 
     }
 
     public bool CheckIfFull()
     {
-
-        int counter = 0;
-
         foreach (GameObject slot in slotList)
         {
-            if (slot.transform.childCount > 0)
-            {
-                counter += 1;
-
-            }
+            if (slot.transform.childCount == 0) return false;
         }
-        if (counter == slotList.Count)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return true;
     }
 
     public void RemoveItem(string nameToRemove, int amountToRemove)
@@ -152,28 +114,24 @@ void Update()
         {
             if (slotList[i].transform.childCount > 0)
             {
-                if (slotList[i].transform.GetChild(0).name == nameToRemove + "(Clone)" && counter != 0)
+                if (slotList[i].transform.GetChild(0).name == nameToRemove + "(Clone)" && counter > 0)
                 {
                     Destroy(slotList[i].transform.GetChild(0).gameObject);
                     counter -= 1;
                 }
             }
-
         }
     }
 
     public void ReCalculateList()
     {
         itemList.Clear();
-
         foreach (GameObject slot in slotList)
         {
             if (slot.transform.childCount > 0)
             {
                 string name = slot.transform.GetChild(0).name;
-                string str2 = "(Clone)";
-                string result = name.Replace(str2, "");
-
+                string result = name.Replace("(Clone)", "");
                 itemList.Add(result);
             }
         }
