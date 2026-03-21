@@ -12,14 +12,26 @@ public class SelectionManager : MonoBehaviour
 
     public GameObject selectedObject;
 
-    public GameObject InteractionInfo;
+    public GameObject Interaction_Info_UI;
     TextMeshProUGUI interaction_text;
 
-    private void Start()
+    public Image centerDotImage;
+    public Image handIcon;
+
+    void Start()
+{
+    onTarget = false;
+
+    if (Interaction_Info_UI != null)
     {
-        onTarget = false;
-        interaction_text = InteractionInfo.GetComponent<TextMeshProUGUI>();
+        interaction_text = Interaction_Info_UI.GetComponent<TextMeshProUGUI>();
     }
+    else
+    {
+        Debug.LogError("Interaction_Info_UI is NOT assigned!");
+    }
+}
+
 
     private void Awake()
     {
@@ -48,7 +60,7 @@ public class SelectionManager : MonoBehaviour
                 onTarget = true;
                 selectedObject = interactable.gameObject;
                 interaction_text.text = interactable.GetItemName();
-                InteractionInfo.SetActive(true);
+                Interaction_Info_UI.SetActive(true);
 
                 if (Input.GetMouseButtonDown(0))
                 {
@@ -61,13 +73,31 @@ public class SelectionManager : MonoBehaviour
             else
             {
                 onTarget = false;
-                InteractionInfo.SetActive(false);
+                Interaction_Info_UI.SetActive(false);
             }
         }
         else
         {
             onTarget = false;
-            InteractionInfo.SetActive(false);
+            Interaction_Info_UI.SetActive(false);
         }
     }
+        public void DisableSelection()
+{
+    handIcon.enabled = false;
+    if (handIcon != null)
+    {
+        handIcon.enabled = false;
+    }
+    centerDotImage.enabled = false;
+    Interaction_Info_UI.SetActive(false);
+    selectedObject = null;
+}
+    
+public void EnableSelection()
+{
+    enabled = true;
+    handIcon.enabled = true;
+    centerDotImage.enabled = true;
+}
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using UnityEditor.Animations;
 using UnityEditor.Build.Content;
+
 using UnityEngine;
 
 public class InventorySystem : MonoBehaviour
@@ -41,6 +42,9 @@ public class InventorySystem : MonoBehaviour
     {
         isOpen = false;
         PopulateSlotList();
+        Cursor.visible = false;
+
+        
     }
 
     private void PopulateSlotList()
@@ -59,30 +63,35 @@ public class InventorySystem : MonoBehaviour
 
 
 
-    void Update()
+void Update()
+{
+    if (Input.GetKeyDown(KeyCode.I) && !isOpen)
     {
+        Debug.Log("i is pressed");
+        inventoryScreenUI.SetActive(true);
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
 
-        if (Input.GetKeyDown(KeyCode.I) && !isOpen)
-        {
+        SelectionManager.Instance.DisableSelection();
+        SelectionManager.Instance.GetComponent<SelectionManager>().enabled = false;
 
-            Debug.Log("i is pressed");
-            inventoryScreenUI.SetActive(true);
-            Cursor.lockState = CursorLockMode.None;
-            isOpen = true;
-
-        }
-        else if (Input.GetKeyDown(KeyCode.I) && isOpen)
-        {
-            inventoryScreenUI.SetActive(false);
-
-            if (!CraftingSystem.Instance.isOpen)
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-            }
-            isOpen = false;
-
-        }
+        isOpen = true;
     }
+    else if (Input.GetKeyDown(KeyCode.I) && isOpen)
+    {
+        inventoryScreenUI.SetActive(false);
+
+        if (!CraftingSystem.Instance.isOpen)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            SelectionManager.Instance.EnableSelection();
+            SelectionManager.Instance.GetComponent<SelectionManager>().enabled = false;
+        }
+
+        isOpen = false;
+    }
+}
 
 
     public void AddToInventory(string itemName)
