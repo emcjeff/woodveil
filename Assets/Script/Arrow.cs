@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Arrow : MonoBehaviour
@@ -7,47 +6,44 @@ public class Arrow : MonoBehaviour
     private Rigidbody rb;
     private bool isStuck = false;
     private bool canStick = false;
+    public float stickDepth = 0.2f;
 
-    private void Awake()
+    void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
-
-        // Ignore the player's layer specifically if you have one
-        // Physics.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Player"));
-
         StartCoroutine(EnableSticking());
-        Destroy(gameObject, 10f);
+        Destroy(gameObject, 15f);
     }
 
     IEnumerator EnableSticking()
     {
-        // Wait a tiny bit of time so the arrow clears the player's body
-        yield return new WaitForSeconds(0.15f);
+        yield return new WaitForSeconds(0.05f);
         canStick = true;
     }
 
-    private void FixedUpdate()
+    void FixedUpdate()
     {
-        if (!isStuck && rb.linearVelocity.magnitude > 1f)
-        {
-            transform.forward = rb.linearVelocity;
-        }
+        if (isStuck) return;
+        if (rb.linearVelocity.sqrMagnitude > 0.1f)
+            transform.forward = rb.linearVelocity.normalized;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (!canStick) return; // Ignore collisions for the first 0.15 seconds
-        if (collision.gameObject.CompareTag("Player")) return;
+        if (isStuck || !canStick || collision.gameObject.CompareTag("Player")) return;
 
-        if (!isStuck)
-        {
-            isStuck = true;
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            rb.isKinematic = true;
-            transform.SetParent(collision.transform);
-        }
+        isStuck = true;
+
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+
+        rb.isKinematic = true;
+        GetComponent<Collider>().enabled = false; // Prevents "jitter" during hops
+
+        // slime attach
+        ContactPoint contact = collision.GetContact(0);
+        transform.position = contact.point + (transform.forward * stickDepth);
+        transform.SetParent(collision.transform); // arrow becomes the arrows child
     }
 }

@@ -1,16 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-<<<<<<< HEAD
-<<<<<<< HEAD:INSIDETHEBOOK/Assets/Script/InventroySystem.cs
-using System.Diagnostics.Tracing;
-using UnityEditor.Animations;
-using UnityEditor.Build.Content;
-
-=======
->>>>>>> b857efda77977d2f6f8190f3b7f33a6c89e5e36d:Assets/Script/InventroySystem.cs
-=======
->>>>>>> b857efda77977d2f6f8190f3b7f33a6c89e5e36d
 using UnityEngine;
 
 public class InventorySystem : MonoBehaviour
@@ -40,14 +30,6 @@ public class InventorySystem : MonoBehaviour
         isOpen = false;
         PopulateSlotList();
         Cursor.visible = false;
-<<<<<<< HEAD
-<<<<<<< HEAD:INSIDETHEBOOK/Assets/Script/InventroySystem.cs
-
-        
-=======
->>>>>>> b857efda77977d2f6f8190f3b7f33a6c89e5e36d:Assets/Script/InventroySystem.cs
-=======
->>>>>>> b857efda77977d2f6f8190f3b7f33a6c89e5e36d
     }
 
     private void PopulateSlotList()
@@ -62,26 +44,6 @@ public class InventorySystem : MonoBehaviour
         }
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD:INSIDETHEBOOK/Assets/Script/InventroySystem.cs
-
-
-void Update()
-{
-    if (Input.GetKeyDown(KeyCode.I) && !isOpen)
-    {
-        Debug.Log("i is pressed");
-        inventoryScreenUI.SetActive(true);
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-
-        SelectionManager.Instance.DisableSelection();
-        SelectionManager.Instance.GetComponent<SelectionManager>().enabled = false;
-
-        isOpen = true;
-=======
-=======
->>>>>>> b857efda77977d2f6f8190f3b7f33a6c89e5e36d
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.I) && !isOpen)
@@ -109,27 +71,8 @@ void Update()
                 SelectionManager.Instance.enabled = true; // Crucial fix
             }
         }
->>>>>>> b857efda77977d2f6f8190f3b7f33a6c89e5e36d:Assets/Script/InventroySystem.cs
     }
-    else if (Input.GetKeyDown(KeyCode.I) && isOpen)
-    {
-        inventoryScreenUI.SetActive(false);
 
-<<<<<<< HEAD
-        if (!CraftingSystem.Instance.isOpen)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            SelectionManager.Instance.EnableSelection();
-            SelectionManager.Instance.GetComponent<SelectionManager>().enabled = false;
-        }
-
-        isOpen = false;
-    }
-}
-
-=======
->>>>>>> b857efda77977d2f6f8190f3b7f33a6c89e5e36d
     public void AddToInventory(string itemName)
     {
         GameObject whatSlotToEquip = FindNextEmptySlot();
