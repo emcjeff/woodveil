@@ -738,10 +738,10 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9123748792675846688}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.08715578, y: 0.9961947, z: -0, w: 0}
+  m_LocalRotation: {x: 0.08715578, y: 0.9961947, z: 0, w: 0}
   m_LocalPosition: {x: 1.53, y: 0.214, z: 1.47}
-  m_LocalScale: {x: 0.40000007, y: 0.3, z: 0.4}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.3, y: 0.22499998, z: 0.3}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 5826781975605372568}
   - {fileID: 7352752155899171852}
@@ -784,4 +784,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BowController
   arrowPrefabPath: Arrow
   spawnPosition: {fileID: 4482509212186896542}
-  shootingForce: 40
+  minForce: 20
+  maxForce: 120
+  timeToMaxCharge: 1.2

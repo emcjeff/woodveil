@@ -6,7 +6,7 @@ using TMPro;
 
 public class SelectionManager : MonoBehaviour
 {
-    public static SelectionManager Instance { get; set; }
+    public static SelectionManager Instance { get; private set; }
 
     public bool onTarget;
 
@@ -17,6 +17,7 @@ public class SelectionManager : MonoBehaviour
 
     public Image centerDotImage;
     public Image handIcon;
+    public RaycastHit hitInfo;
 
     void Start()
 {
@@ -62,6 +63,19 @@ public class SelectionManager : MonoBehaviour
                 interaction_text.text = interactable.GetItemName();
                 Interaction_Info_UI.SetActive(true);
 
+                // Check if the object is a pickable item (Stone/Stick)
+                if (interactable.CompareTag("pickable"))
+                {
+                    centerDotImage.gameObject.SetActive(false);
+                    handIcon.gameObject.SetActive(true);
+                }
+                else
+                {
+                    handIcon.gameObject.SetActive(false);
+                    centerDotImage.gameObject.SetActive(true);
+                }
+
+                // Click to pickup (only if bow isn't busy)
                 if (Input.GetMouseButtonDown(0))
                 {
                     if (BowController.Instance != null && !BowController.Instance.IsBusy())
@@ -72,17 +86,25 @@ public class SelectionManager : MonoBehaviour
             }
             else
             {
-                onTarget = false;
-                Interaction_Info_UI.SetActive(false);
+                ResetSelectionUI();
             }
         }
         else
         {
-            onTarget = false;
-            Interaction_Info_UI.SetActive(false);
+            ResetSelectionUI();
         }
     }
-        public void DisableSelection()
+
+
+    // Helper to keep the code clean
+    private void ResetSelectionUI()
+    {
+        onTarget = false;
+        Interaction_Info_UI.SetActive(false);
+        handIcon.gameObject.SetActive(false);
+        centerDotImage.gameObject.SetActive(true);
+    }
+    public void DisableSelection()
 {
     handIcon.enabled = false;
     if (handIcon != null)

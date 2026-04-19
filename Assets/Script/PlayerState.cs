@@ -6,11 +6,6 @@
         // ---- Player Health ---- //
         public float currentHealth;
         public float maxHealth;
-        
-
-        // ---- Player Stamina ---- //
-        public float currentStamina;
-        public float maxStamina;
 
         private void Awake()
         {

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7563476945170823235}
   - component: {fileID: 8006696513287650645}
   - component: {fileID: 7243788545741711102}
+  - component: {fileID: 4118429945824973448}
   m_Layer: 0
   m_Name: Tree 2
   m_TagString: Untagged
@@ -28,7 +29,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4557732268571592713}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 203, y: 12.54, z: 238}
   m_LocalScale: {x: 4.1537, y: 4.1537, z: 4.1537}
   m_ConstrainProportionsScale: 0
@@ -106,7 +107,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerInRange: 0
-  ItemName: titree
+  ItemName: tree
 --- !u!136 &7243788545741711102
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -126,10 +127,31 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.88
-  m_Height: 4.8
+  m_Radius: 0.4392894
+  m_Height: 5.4522767
   m_Direction: 1
-  m_Center: {x: 0, y: -0.59237903, z: -0.07984137}
+  m_Center: {x: 0, y: -0.9185149, z: 0}
+--- !u!65 &4118429945824973448
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4557732268571592713}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.0406978, y: 5, z: 2.9855542}
+  m_Center: {x: -0.4213934, y: 0, z: 0.05419622}
 --- !u!1001 &3340787355646353865
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -161,7 +183,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 1c0cf071d67845040be53ab974f5c9e1,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.15
+      value: 0.56
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 1c0cf071d67845040be53ab974f5c9e1,
         type: 3}
