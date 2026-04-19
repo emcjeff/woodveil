@@ -95,7 +95,6 @@ public class SelectionManager : MonoBehaviour
         }
     }
 
-
     // Helper to keep the code clean
     private void ResetSelectionUI()
     {
