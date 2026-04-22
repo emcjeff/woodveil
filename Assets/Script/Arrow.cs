@@ -12,7 +12,8 @@ public class Arrow : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
-        StartCoroutine(EnableSticking());
+        canStick = true;
+        //StartCoroutine(EnableSticking());
         Destroy(gameObject, 15f);
     }
 
