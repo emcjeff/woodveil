@@ -11,12 +11,6 @@ public class HealthBar : MonoBehaviour
 
     private float currentHealth, maxHealth;
     private Slider slider;
-    
-    public void takeDamage(float amount) 
-{
-    currentHealth -= amount;
-    // ... rest of your death logic
-}
 
     void Awake()
     {

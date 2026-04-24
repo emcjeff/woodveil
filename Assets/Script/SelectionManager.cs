@@ -17,7 +17,6 @@ public class SelectionManager : MonoBehaviour
 
     public Image centerDotImage;
     public Image handIcon;
-    public RaycastHit hitInfo;
 
     void Start()
 {

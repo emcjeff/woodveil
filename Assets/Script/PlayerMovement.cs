@@ -17,9 +17,11 @@ public class PlayerMovement : MonoBehaviour
     Vector3 velocity;
  
     bool isGrounded;
- 
+
+    public Transform orientation;
+
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         //checking if we hit the ground to reset our falling velocity, otherwise we will fall faster the next time
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
@@ -33,7 +35,7 @@ public class PlayerMovement : MonoBehaviour
         float z = Input.GetAxis("Vertical");
  
         //right is the red Axis, foward is the blue axis
-        Vector3 move = transform.right * x + transform.forward * z;
+        Vector3 move = orientation.right * x + orientation.forward * z;
  
         controller.Move(move * speed * Time.deltaTime);
  

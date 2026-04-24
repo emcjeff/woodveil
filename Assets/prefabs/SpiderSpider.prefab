@@ -2139,7 +2139,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5122415190719050496}
-  - component: {fileID: 1462340579257976865}
   m_Layer: 0
   m_Name: SpiderSpider
   m_TagString: Untagged
@@ -2179,24 +2178,3 @@ Transform:
   - {fileID: 672926250449926055}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &1462340579257976865
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9183770661008780414}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1.3407745, y: 1.3395509, z: 2.2669983}
-  m_Center: {x: 0.03690338, y: 0.9714685, z: -0.93211365}
