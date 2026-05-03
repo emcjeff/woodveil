@@ -2,22 +2,26 @@ using UnityEngine;
 
 public class EnemyHealth : MonoBehaviour
 {
-    [Header("Stats")]
-    public int maxHealth = 100;
-    private int currentHealth;
+    [Header("Health Settings")]
+    public float maxHealth = 100f;
+    public float currentHealth;
+
+    [Header("Effects")]
+    public GameObject deathEffect; // Optional: Particle system for when they die
 
     void Start()
     {
-        // Initialize health when the game starts
+        // Initialize health at the start
         currentHealth = maxHealth;
     }
 
-    public void TakeDamage(int damageAmount)
+    public void TakeDamage(float amount)
     {
-        currentHealth -= damageAmount;
-        Debug.Log("Enemy hit! Remaining Health: " + currentHealth);
+        currentHealth -= amount;
 
-        // Check for death
+        // Optional: Play a "Hit" animation or sound here
+        Debug.Log(gameObject.name + " took damage! Current health: " + currentHealth);
+
         if (currentHealth <= 0)
         {
             Die();
@@ -26,8 +30,14 @@ public class EnemyHealth : MonoBehaviour
 
     void Die()
     {
-        Debug.Log("Enemy Died!");
-        // You can add particle effects or animations here
+        if (deathEffect != null) 
+    {
+        Instantiate(deathEffect, transform.position, Quaternion.identity);
+    }
+
+        // Destroy the enemy object
         Destroy(gameObject);
+        
+        Debug.Log(gameObject.name + " has died.");
     }
 }
