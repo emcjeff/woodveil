@@ -14,7 +14,7 @@ public class Arrow : MonoBehaviour
         rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         canStick = true;
         //StartCoroutine(EnableSticking());
-        Destroy(gameObject, 15f);
+        Destroy(gameObject, 2f); // Destroy the arrow after 2 seconds to prevent clutter
     }
 
     IEnumerator EnableSticking()

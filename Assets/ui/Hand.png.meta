@@ -113,10 +113,10 @@ TextureImporter:
       name: Hand_0
       rect:
         serializedVersion: 2
-        x: 953
-        y: 925
-        width: 90
-        height: 103
+        x: 21
+        y: 27
+        width: 112
+        height: 107
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}

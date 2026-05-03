@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement1 : MonoBehaviour
 {
     public CharacterController controller;
  
@@ -19,6 +19,17 @@ public class PlayerMovement : MonoBehaviour
     bool isGrounded;
 
     public Transform orientation;
+
+    bool jumpRequested = false; // Add this variable at the top
+
+    void Update()
+{
+    // Capture the input in Update so we never miss a click
+    if (Input.GetButtonDown("Jump") && isGrounded)
+    {
+        jumpRequested = true;
+    }
+}
 
     // Update is called once per frame
     void FixedUpdate()
@@ -40,11 +51,11 @@ public class PlayerMovement : MonoBehaviour
         controller.Move(move * speed * Time.deltaTime);
  
         //check if the player is on the ground so he can jump
-        if (Input.GetButtonDown("Jump") && isGrounded)
-        {
-            //the equation for jumping
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-        }
+        if (jumpRequested)
+    {
+        velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        jumpRequested = false; // Reset the request
+    }
  
         velocity.y += gravity * Time.deltaTime;
  
