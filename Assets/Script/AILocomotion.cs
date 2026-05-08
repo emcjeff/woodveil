@@ -44,6 +44,11 @@ public class AILocomotion : MonoBehaviour
             {
                 agent.isStopped = false;
             }
+
+            if (agent.isOnNavMesh && agent.isActiveAndEnabled)
+            {
+            agent.isStopped = true; // Or agent.Stop();
+            }
         }
     }
 
@@ -59,4 +64,6 @@ public class AILocomotion : MonoBehaviour
             Gizmos.DrawWireCube(startPosition, Vector3.one);
         }
     }
+
+    
 }

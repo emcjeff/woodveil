@@ -1,49 +1,43 @@
-using UnityEngine;
+    using UnityEngine;
 
-public class PlayerState : MonoBehaviour
-{
-    public int maxHealth = 100;
-    public int currentHealth;
-
-    public HealthBar healthBar;
-
-    void Start()
+    public class PlayerState : MonoBehaviour
     {
-        currentHealth = maxHealth;
-        healthBar.SetMaxHealth(maxHealth);
-    }
+        public static  PlayerState Instance {get; set;}
+        // ---- Player Health ---- //
+        public float currentHealth;
+        public float maxHealth;
+        
 
-    void Update()
-    {
-        // For testing purposes
-        if (Input.GetKeyDown(KeyCode.N))
+        // ---- Player Stamina ---- //
+        public float currentStamina;
+        public float maxStamina;
+
+        private void Awake()
         {
-            TakeDamage(10);
+        if (Instance!= null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
+        }
+
+        private void Start ()
+        {
+            currentHealth = maxHealth; 
+        }
+
+        void Update()
+        {
+            if(Input.GetKeyDown(KeyCode.N))
+            {
+                currentHealth -= 10;
+            }
+            if (currentHealth < 0)
+        {
+            currentHealth = 0;
+        }
         }
     }
-
-    // Detects collision with the enemy
-    private void OnCollisionEnter(Collision collision)
-    {
-        if(collision.gameObject.CompareTag("Slime"))
-            
-        {
-            TakeDamage(20);
-        }
-    }
-
-    // MAKE SURE THERE IS ONLY ONE OF THESE
-    public void TakeDamage(int damage)
-    {
-        currentHealth -= damage;
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-
-        healthBar.SetHealth(currentHealth);
-        Debug.Log("Player Health: " + currentHealth);
-
-        if (currentHealth <= 0)
-        {
-            Debug.Log("Player is Dead!");
-        }
-    }
-}

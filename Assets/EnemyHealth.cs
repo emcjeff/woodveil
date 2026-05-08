@@ -9,10 +9,14 @@ public class EnemyHealth : MonoBehaviour
     [Header("Effects")]
     public GameObject deathEffect; // Optional: Particle system for when they die
 
+    [SerializeField] private FloatingHealthBar healthBar;
+
     void Start()
     {
         // Initialize health at the start
         currentHealth = maxHealth;
+
+        healthBar.UpdateHealthBar(currentHealth, maxHealth);
     }
 
     public void TakeDamage(float amount)
@@ -40,4 +44,4 @@ public class EnemyHealth : MonoBehaviour
         
         Debug.Log(gameObject.name + " has died.");
     }
-}
+}   
