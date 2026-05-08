@@ -1,26 +1,31 @@
 using UnityEngine;
-using UnityEngine.UI; // Required for using the Slider
+using UnityEngine.UI;
+using TMPro;
 
 public class HealthBar : MonoBehaviour
 {
-    public Slider slider;
-    public Gradient gradient;
-    public Image fill;
+        
+    public TMP_Text healthCounter;
 
-    // This is the missing method causing your error!
-    public void SetMaxHealth(int health)
+    public GameObject PlayerState;
+
+    private float currentHealth, maxHealth;
+    private Slider slider;
+
+    void Awake()
     {
-        slider.maxValue = health;
-        slider.value = health;
-
-        gradient.Evaluate(1f); // Set the color to the max health color
+        slider = GetComponent<Slider>();
     }
 
-    // You likely need this one too for your TakeDamage method
-    public void SetHealth(int health)
+    
+    void Update()
     {
-        slider.value = health;
+        currentHealth = PlayerState.GetComponent<PlayerState>().currentHealth;
+        maxHealth = PlayerState.GetComponent<PlayerState>().maxHealth;
+    
+        float fillValue = currentHealth / maxHealth; //0 - 1
+        slider.value = fillValue;
 
-        fill.color = gradient.Evaluate(slider.normalizedValue); // Change color based on health percentage
+        healthCounter.text = currentHealth + "/" + maxHealth; 
     }
 }
