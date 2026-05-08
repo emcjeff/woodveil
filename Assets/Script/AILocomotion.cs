@@ -6,13 +6,17 @@ using UnityEngine.AI;
 public class AILocomotion : MonoBehaviour
 {
     public Transform playerTransform;
-    public float detectionRange = 10f; // Distance at which enemy starts following
+    public float detectionRange = 10f; 
     
     NavMeshAgent agent;
+    private Vector3 startPosition; // Variable to remember the home base
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        
+        // Record the position where the enemy starts the game
+        startPosition = transform.position;
     }
 
     void Update()
@@ -28,15 +32,31 @@ public class AILocomotion : MonoBehaviour
         }
         else
         {
-            // Outside range: Stop moving
-            agent.isStopped = true;
+            // Outside range: Go back to the starting position
+            agent.destination = startPosition;
+            
+            // Optional: If you want the agent to stop completely once it's "close enough" home
+            if (Vector3.Distance(transform.position, startPosition) < 0.5f)
+            {
+                agent.isStopped = true;
+            }
+            else
+            {
+                agent.isStopped = false;
+            }
         }
     }
 
-    // This helps you see the range in the Editor (Scene View)
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
+        
+        // Visualizes the home position in the editor
+        if (Application.isPlaying)
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireCube(startPosition, Vector3.one);
+        }
     }
 }
