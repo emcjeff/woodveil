@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Materials/Materials/cavetexture.jpg.meta
 guid: a63fcf0662010bf429b9ea5430f62680
+========
+guid: d8b77e33a5fb25b4f9e0696fd19b67cd
+>>>>>>>> origin/ANimasyon:Assets/Materials/cavetexture.png.meta
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}

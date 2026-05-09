@@ -2,84 +2,96 @@ using UnityEngine;
 
 public class AI_Movement : MonoBehaviour
 {
+    [Header("Movement Settings")]
     public float moveSpeed = 1.5f;
-    public float rotationSpeed = 5.0f; // Higher = faster rotation
+    public float rotationSpeed = 5.0f;
     public float walkTime = 2.0f;
     public float waitTime = 2.0f;
 
-    private float walkCounter;
-    private float waitCounter;
+    [Header("Status")]
     public bool isWalking;
 
+    private float timer;
     private Rigidbody rb;
     private Animator anim;
-    private Quaternion targetRotation; // Stores where we want to face
+    private Quaternion targetRotation;
+    private EnemyHealth health;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
-        waitCounter = waitTime;
-        walkCounter = walkTime;
+        health = GetComponent<EnemyHealth>();
 
-        // Initialize targetRotation to current rotation so it doesn't snap at start
         targetRotation = transform.rotation;
-        ChooseDirection();
+
+        // Start by waiting
+        isWalking = false;
+        timer = waitTime;
     }
 
     void Update()
     {
-        if (isWalking)
+        // 1. If the enemy is dead, stop all movement logic
+        if (health != null && health.currentHealth <= 0) return;
+
+        // 2. Handle State Switching
+        timer -= Time.deltaTime;
+        if (timer <= 0)
         {
-            walkCounter -= Time.deltaTime;
-            if (walkCounter <= 0) StopWalking();
-        }
-        else
-        {
-            waitCounter -= Time.deltaTime;
-            if (waitCounter <= 0) ChooseDirection();
+            if (isWalking) StopWalking();
+            else ChooseDirection();
         }
 
-        // SMOOTH ROTATION: Gradually rotate towards the targetRotation
+        // 3. Handle Rotation (Happens whether walking or standing)
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
 
-        if (anim != null) anim.SetBool("isRunning", isWalking);
+        // 4. Update Animator
+        if (anim != null)
+        {
+            // Note: I used "isWalking" to match your spider logic
+            anim.SetBool("isWalking", isWalking);
+
+            // If you still use "isRunning" for slimes, 
+            // you can add this line too:
+            anim.SetBool("isRunning", isWalking);
+        }
     }
 
     void FixedUpdate()
     {
+        // Stop physics movement if dead
+        if (health != null && health.currentHealth <= 0)
+        {
+            rb.linearVelocity = Vector3.zero;
+            return;
+        }
+
         if (isWalking)
         {
-            // Move in the direction the slime is currently facing
             rb.linearVelocity = transform.forward * moveSpeed;
         }
         else
         {
-            rb.linearVelocity = Vector3.zero;
+            // Clean stop
+            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
         }
     }
 
     public void ChooseDirection()
     {
-        int walkDirection = Random.Range(0, 4);
         isWalking = true;
-        walkCounter = walkTime;
+        timer = walkTime;
 
-        // Instead of setting transform.rotation, we set the targetRotation
-        // We still keep your 180 offset logic here
-        switch (walkDirection)
-        {
-            case 0: targetRotation = Quaternion.Euler(0, 180, 0); break; // Forward
-            case 1: targetRotation = Quaternion.Euler(0, 270, 0); break; // Right
-            case 2: targetRotation = Quaternion.Euler(0, 0, 0); break;   // Backward
-            case 3: targetRotation = Quaternion.Euler(0, 90, 0); break;  // Left
-        }
+        // Pick a random angle (0 to 360 degrees) for more natural movement
+        float randomAngle = Random.Range(0, 4) * 90f;
+        targetRotation = Quaternion.Euler(0, randomAngle, 0);
     }
 
     void StopWalking()
     {
         isWalking = false;
-        waitCounter = waitTime;
+        timer = waitTime;
         rb.linearVelocity = Vector3.zero;
     }
 }
