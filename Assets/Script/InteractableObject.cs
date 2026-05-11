@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class InteractableObject : MonoBehaviour
 {
+    public enum InteractionType { Pickable, ObservationOnly }
+    public InteractionType type;
+
     public bool playerInRange;
     public string ItemName;
 
@@ -12,18 +15,51 @@ public class InteractableObject : MonoBehaviour
         return ItemName;
     }
 
-
-
     public void PickUp()
     {
-        if (!InventorySystem.Instance.CheckIfFull())
+        if (type == InteractionType.ObservationOnly)
         {
-            InventorySystem.Instance.AddToInventory(ItemName);
-            Destroy(gameObject);
+            return;
         }
-        else
+
+        // 1. SPECIAL LOGIC: The Book
+        if (ItemName.ToLower() == "book")
         {
-            Debug.Log("PUNO NA INVENTORY!!");
+            if (BookManager.Instance != null)
+            {
+                BookManager.Instance.CollectBook();
+                Destroy(gameObject);
+                return;
+            }
+        }
+
+        // 2. SPECIAL LOGIC: The Helmet (Headlamp)
+        if (ItemName.ToLower() == "helmet")
+        {
+            if (FlashlightController.Instance != null)
+            {
+                FlashlightController.Instance.PickUpHelmet();
+                Destroy(gameObject);
+                return;
+            }
+            else
+            {
+                Debug.LogWarning("Found Helmet, but FlashlightController.Instance is missing from the Player!");
+            }
+        }
+
+        // 3. REGULAR ITEMS: (Stone, Stick, etc.)
+        if (InventorySystem.Instance != null)
+        {
+            if (!InventorySystem.Instance.CheckIfFull())
+            {
+                InventorySystem.Instance.AddToInventory(ItemName);
+                Destroy(gameObject);
+            }
+            else
+            {
+                Debug.Log("Inventory is full!");
+            }
         }
     }
 

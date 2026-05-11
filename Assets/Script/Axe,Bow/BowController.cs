@@ -5,22 +5,22 @@ public class BowController : MonoBehaviour
 {
     public static BowController Instance { get; private set; }
 
-    // --- ADDED THIS VARIABLE ---
-    private bool fired = false; 
-
+    private bool fired = false;
     private Animator BowAnimator;
+
+    // Make sure this matches your prefab name in Resources
     public string arrowPrefabPath = "Arrow";
     private GameObject arrowPrefab;
     public Transform spawnPosition;
 
     [Header("Force Settings")]
     public float minForce = 10f;
-    public float maxForce = 60f; 
+    public float maxForce = 60f;
     public float timeToMaxCharge = 1.5f;
 
     [Header("Interaction Buffers")]
-    public float tapThreshold = 0.2f; 
-    public float shootCooldown = 0.5f; 
+    public float tapThreshold = 0.2f;
+    public float shootCooldown = 0.5f;
 
     private bool isCharging = false;
     private float chargeStartTime = 0f;
@@ -37,12 +37,11 @@ public class BowController : MonoBehaviour
         arrowPrefab = Resources.Load<GameObject>(arrowPrefabPath);
     }
 
-    // --- ADDED THIS FUNCTION ---
     public bool IsFired()
     {
         if (fired)
         {
-            fired = false; // Reset immediately so it only triggers once
+            fired = false;
             return true;
         }
         return false;
@@ -60,10 +59,20 @@ public class BowController : MonoBehaviour
 
         if (Time.time < lastShotTime + shootCooldown) return;
 
+        // --- CHECK FOR AMMO BEFORE STARTING ---
         if (Input.GetMouseButtonDown(0))
         {
-            chargeStartTime = Time.time;
-            isCharging = true;
+            // We check if "ArrowUI" (your inventory icon name) is in the list
+            if (InventorySystem.Instance.itemList.Contains("ArrowUI"))
+            {
+                chargeStartTime = Time.time;
+                isCharging = true;
+            }
+            else
+            {
+                Debug.Log("No arrows left!");
+                // Optional: Play a "click" sound or show a "No Ammo" UI here
+            }
         }
 
         if (isCharging && Input.GetMouseButton(0))
@@ -84,7 +93,11 @@ public class BowController : MonoBehaviour
                 float finalForce = Mathf.Lerp(minForce, maxForce, chargePercent);
 
                 ShootArrow(finalForce);
-                lastShotTime = Time.time; 
+
+                // --- CONSUME THE AMMO ---
+                InventorySystem.Instance.RemoveItem("ArrowUI", 1);
+
+                lastShotTime = Time.time;
             }
 
             ResetBow();
@@ -101,8 +114,7 @@ public class BowController : MonoBehaviour
 
     private void ShootArrow(float force)
     {
-        // --- ADDED THIS LINE ---
-        fired = true; // Tell the SelectionManager an arrow was just released
+        fired = true;
 
         Vector3 shootingDirection = CalculateDirection().normalized;
         Quaternion arrowRotation = Quaternion.LookRotation(shootingDirection);
