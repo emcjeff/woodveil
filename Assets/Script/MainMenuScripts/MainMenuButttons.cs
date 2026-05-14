@@ -7,8 +7,19 @@ public class MainMenu : MonoBehaviour
     public GameObject mainButtonsGroup;
     public string mainMenuSceneName = "MainMenu";
 
+    void Start()
+    {
+        // Force the cursor to be visible and free when the menu loads
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
     public void PlayGame()
     {
+        // 1. Clear the saved exit point from previous play sessions
+        // This prevents the player from teleporting to Cave coordinates in the World scene.
+        PlayerPrefs.DeleteKey("LastExit");
+
+        // 2. Load the first game scene
         SceneManager.LoadScene("wodbeyl");
     }
 
@@ -32,8 +43,10 @@ public class MainMenu : MonoBehaviour
     public void QuitGame()
     {
         Application.Quit();
-//#if UNITY_EDITOR
-//        UnityEditor.EditorApplication.isPlaying = false;
-//#endif
+
+        // This helps you test the quit button while inside the Unity Editor
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
     }
 }

@@ -8,6 +8,7 @@ TagManager:
   - Slime
   - pickable
   - Door
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -18,7 +19,7 @@ TagManager:
   - Player
   - Arrow
   - Enemy
-  - 
+  - Interactable
   - 
   - 
   - 
@@ -44,6 +45,21 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: 1
+    uniqueID: 3512182141
+    locked: 0
+  - name: 2
+    uniqueID: 4166028303
+    locked: 0
+  - name: 3
+    uniqueID: 887575595
+    locked: 0
+  - name: 4
+    uniqueID: 1317866203
+    locked: 0
+  - name: 5
+    uniqueID: 872180517
     locked: 0
   m_RenderingLayers:
   - Default

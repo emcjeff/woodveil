@@ -1,23 +1,70 @@
 using UnityEngine;
+using UnityEngine.SceneManagement; // Added for scene loading logic
 
 public class BookManager : MonoBehaviour
 {
+    public static BookManager Instance { get; private set; }
+
     public GameObject bookUI;
-    private bool isBookOpen = false;
+    public GameObject BookPrompt;
+
+    public bool isBookOpen = false;
+    public bool hasBook = false;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+            // Ensure the BookManager travels between scenes
+            DontDestroyOnLoad(gameObject);
+        }
+    }
+
+    // --- SCENE TRANSITION FIX ---
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // When entering the Cave, force the book to a closed state
+        // This fixes buttons becoming unresponsive due to "ghost" states
+        CloseBook();
+    }
+    // ----------------------------
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E))
+        if (hasBook && !isBookOpen && !InventorySystem.Instance.isOpen && !CraftingSystem.Instance.isOpen)
         {
-            if (isBookOpen)
-            {
-                CloseBook();
-            }
-            else
-            {
-                OpenBook();
-            }
+            BookPrompt.SetActive(true);
         }
+        else
+        {
+            BookPrompt.SetActive(false);
+        }
+
+        if (Input.GetKeyDown(KeyCode.E) && hasBook)
+        {
+            if (isBookOpen) CloseBook();
+            else OpenBook();
+        }
+    }
+
+    public void CollectBook()
+    {
+        hasBook = true;
     }
 
     public void OpenBook()
@@ -25,26 +72,33 @@ public class BookManager : MonoBehaviour
         bookUI.SetActive(true);
         isBookOpen = true;
 
-        // Free the cursor
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // Optional: Tell SelectionManager to stop highlighting things
         if (SelectionManager.Instance != null)
+        {
             SelectionManager.Instance.DisableSelection();
+        }
     }
 
     public void CloseBook()
     {
+        // Find the 'book' script on your UI
+        book pageScript = bookUI.GetComponentInChildren<book>();
+        if (pageScript != null)
+        {
+            pageScript.ResetState(); // This stops the Coroutine and unlocks 'rotate'
+        }
+
         bookUI.SetActive(false);
         isBookOpen = false;
 
-        // Lock the cursor back for gameplay
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        // Re-enable crosshair/interaction
         if (SelectionManager.Instance != null)
+        {
             SelectionManager.Instance.EnableSelection();
+        }
     }
 }

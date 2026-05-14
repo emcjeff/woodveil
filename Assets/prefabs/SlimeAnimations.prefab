@@ -110,6 +110,8 @@ GameObject:
   - component: {fileID: 71283310680389902}
   - component: {fileID: 4174104715024560327}
   - component: {fileID: 1384886714724162689}
+  - component: {fileID: 8853684487274688616}
+  - component: {fileID: 3162458974343799025}
   m_Layer: 0
   m_Name: SlimeAnimations
   m_TagString: Untagged
@@ -278,6 +280,35 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &8853684487274688616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6697281870307641476}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac93dcda6046297478263152a6f562c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AILocomotion
+  playerTransform: {fileID: 0}
+  detectionRange: 15
+--- !u!114 &3162458974343799025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6697281870307641476}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ea4fbfb868607843b44f96f0bd8d2c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
+  maxHealth: 100
+  currentHealth: 0
+  deathEffect: {fileID: 0}
 --- !u!1 &7916376138467642491
 GameObject:
   m_ObjectHideFlags: 0
