@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &8555206067499702550
+--- !u!1 &6653237834264468932
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,49 +8,49 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1965044994964011275}
-  - component: {fileID: 6626064548133830232}
-  - component: {fileID: 1176830651340695390}
-  - component: {fileID: 7727106551208190102}
-  - component: {fileID: 7409758659862261064}
-  - component: {fileID: 1356651917487867495}
+  - component: {fileID: 405110559469430961}
+  - component: {fileID: 4299289163762152955}
+  - component: {fileID: 4338849327048355246}
+  - component: {fileID: 7083581192687946575}
+  - component: {fileID: 9111143474941075274}
+  - component: {fileID: 4379565482236916926}
   m_Layer: 0
-  m_Name: Stone
+  m_Name: Boulder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1965044994964011275
+--- !u!4 &405110559469430961
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8555206067499702550}
+  m_GameObject: {fileID: 6653237834264468932}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 267.082, y: 0.0024615207, z: 345.1898}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalPosition: {x: 258.5925, y: 0.0024564164, z: 353.6828}
+  m_LocalScale: {x: 13.96, y: 13.96, z: 13.96}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &6626064548133830232
+--- !u!33 &4299289163762152955
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8555206067499702550}
-  m_Mesh: {fileID: -5495902117074765545, guid: 08de5791ee658754e9c496e86f29ea3b, type: 3}
---- !u!23 &1176830651340695390
+  m_GameObject: {fileID: 6653237834264468932}
+  m_Mesh: {fileID: -5495902117074765545, guid: 362873f655e1f0d4b9985b0fbc08dbcf, type: 3}
+--- !u!23 &4338849327048355246
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8555206067499702550}
+  m_GameObject: {fileID: 6653237834264468932}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -69,7 +69,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 5ca3b05aa2920394da26a6c07e9002a8, type: 2}
+  - {fileID: 2100000, guid: 24936798795f5814191f8925b72f8208, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -93,13 +93,28 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &7727106551208190102
+--- !u!114 &7083581192687946575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6653237834264468932}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3113f55e86bc3804caebad19b33462d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
+  type: 1
+  playerInRange: 0
+  ItemName: Boulder
+--- !u!65 &9111143474941075274
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8555206067499702550}
+  m_GameObject: {fileID: 6653237834264468932}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -112,15 +127,15 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!65 &7409758659862261064
+  m_Size: {x: 0.4186393, y: 0.15808031, z: 0.3488452}
+  m_Center: {x: 0.005840162, y: 0.07658829, z: 0.012270358}
+--- !u!65 &4379565482236916926
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8555206067499702550}
+  m_GameObject: {fileID: 6653237834264468932}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -133,20 +148,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 14.8, y: -3.5, z: 14.77}
-  m_Center: {x: 0.8516203, y: 0, z: 0}
---- !u!114 &1356651917487867495
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8555206067499702550}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3113f55e86bc3804caebad19b33462d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  type: 0
-  playerInRange: 0
-  ItemName: Stone
+  m_Size: {x: 1.31, y: 0.83, z: 1.05}
+  m_Center: {x: 0.005840162, y: 0.07658829, z: 0.012270358}
