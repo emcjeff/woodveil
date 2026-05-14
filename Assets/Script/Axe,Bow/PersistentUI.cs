@@ -1,13 +1,26 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PersistentUI : MonoBehaviour
 {
-    // We removed the 'static Instance' part so you can put this 
-    // on multiple objects (Player, Canvas, Book) without them killing each other.
-
+    // We use a simple Awake for this one so you can put it on 
+    // the Canvas and EventSystem separately.
     private void Awake()
     {
-        // This is the only line you really need to survive the scene change
+        // Survival command
         DontDestroyOnLoad(gameObject);
+
+        // Safety: If you have a specific object that should only have ONE copy 
+        // (like a secondary manager), you'd use a Singleton. 
+        // For general UI, this line is enough to make it travel.
+    }
+
+    void Update()
+    {
+        // MENU CLEANUP: Ensures the UI doesn't block the actual Main Menu screen
+        if (SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            Destroy(gameObject);
+        }
     }
 }

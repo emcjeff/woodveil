@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -8,21 +6,20 @@ public class SelectionManager : MonoBehaviour
 {
     public static SelectionManager Instance { get; private set; }
 
-    public bool onTarget;
-    public GameObject selectedObject;
-
+    [Header("UI References")]
     public GameObject Interaction_Info_UI;
-    private TextMeshProUGUI interaction_text;
-
     public Image centerDotImage;
     public Image handIcon;
+    private TextMeshProUGUI interaction_text;
 
+    [Header("Combat Settings")]
     public float damage = 20f;
+
+    [HideInInspector] public bool onTarget;
+    [HideInInspector] public GameObject selectedObject;
 
     private void Awake()
     {
-        // PERSISTENCE FIX: 
-        // This ensures the manager survives scene changes and deletes duplicates
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -36,107 +33,48 @@ public class SelectionManager : MonoBehaviour
 
     void Start()
     {
-        onTarget = false;
-
         if (Interaction_Info_UI != null)
-        {
-            interaction_text = Interaction_Info_UI.GetComponent<TextMeshProUGUI>();
-        }
-        else
-        {
-            Debug.LogError("Interaction_Info_UI is NOT assigned in the Inspector!");
-        }
+            interaction_text = Interaction_Info_UI.GetComponentInChildren<TextMeshProUGUI>();
+
+        ResetSelectionUI();
     }
 
     void Update()
     {
-        // 1. CAMERA NULL CHECK (Fixes the Line 51 NullReference error)
-        if (Camera.main == null)
-        {
-            return; // Skip this frame if Unity hasn't found the camera yet
-        }
+        if (Camera.main == null) return;
 
-        // Now it's safe to run this line
+        // Create Ray from center of screen
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit))
+        if (Physics.Raycast(ray, out hit, 5f)) // Added 5f reach distance
         {
-            var selectionTransform = hit.transform;
-
+            Transform selectionTransform = hit.transform;
             InteractableObject interactable = selectionTransform.GetComponent<InteractableObject>();
             WeaponPickup weaponPickup = selectionTransform.GetComponent<WeaponPickup>();
+            EnemyHealth enemy = selectionTransform.GetComponent<EnemyHealth>();
 
-            if ((interactable && interactable.playerInRange) || weaponPickup != null)
+            // 1. CHECK FOR INTERACTABLES (Items/Weapons)
+            if ((interactable && interactable.playerInRange) || (weaponPickup && weaponPickup.playerInRange))
             {
                 onTarget = true;
                 selectedObject = selectionTransform.gameObject;
+                UpdateUI(interactable, weaponPickup);
 
-                // Set Interaction Text
-                if (interaction_text != null)
-                {
-                    if (interactable)
-                    {
-                        interaction_text.text = interactable.GetItemName();
-                    }
-                    else if (weaponPickup)
-                    {
-                        interaction_text.text = weaponPickup.weaponName.Replace("UI", "");
-                    }
-                }
-
-                if (Interaction_Info_UI != null) Interaction_Info_UI.SetActive(true);
-
-                // Handle Cursor Icons
-                if ((interactable && interactable.CompareTag("pickable")) || weaponPickup != null)
-                {
-                    if (centerDotImage != null) centerDotImage.gameObject.SetActive(false);
-                    if (handIcon != null) handIcon.gameObject.SetActive(true);
-                }
-                else
-                {
-                    if (handIcon != null) handIcon.gameObject.SetActive(false);
-                    if (centerDotImage != null) centerDotImage.gameObject.SetActive(true);
-                }
-
-                // 2. HANDLE INTERACTION
                 if (Input.GetMouseButtonDown(0))
                 {
-                    if (weaponPickup != null)
-                    {
-                        weaponPickup.Interact();
-                    }
-                    else if (interactable.GetComponentInParent<DoorInteractable>())
-                    {
-                        interactable.GetComponentInParent<DoorInteractable>().ToogleDoor();
-                    }
-                    else
-                    {
-                        // Check for Bow busy state
-                        if (BowController.Instance != null && !BowController.Instance.IsBusy())
-                        {
-                            interactable.PickUp();
-                        }
-                        else if (BowController.Instance == null)
-                        {
-                            interactable.PickUp();
-                        }
-                    }
+                    HandleInteraction(interactable, weaponPickup);
                 }
+            }
+            // 2. CHECK FOR ENEMIES
+            else if (enemy != null)
+            {
+                selectedObject = enemy.gameObject;
+                ResetSelectionUI(); // Hide "Pick Up" UI but keep enemy as selectedObject
             }
             else
             {
-                // Look for enemies even if not interactable
-                EnemyHealth enemy = selectionTransform.GetComponent<EnemyHealth>();
-                if (enemy != null)
-                {
-                    selectedObject = enemy.gameObject;
-                }
-                else
-                {
-                    selectedObject = null;
-                }
-
+                selectedObject = null;
                 ResetSelectionUI();
             }
         }
@@ -146,18 +84,55 @@ public class SelectionManager : MonoBehaviour
             ResetSelectionUI();
         }
 
-        // 3. COMBAT LOGIC
-        if (Input.GetMouseButtonUp(0))
+        // 3. COMBAT LOGIC (On Mouse Release)
+        if (Input.GetMouseButtonUp(0) && selectedObject != null)
         {
-            if (selectedObject != null)
+            if (BowController.Instance != null && BowController.Instance.IsFired())
             {
-                if (BowController.Instance != null && BowController.Instance.IsFired())
+                EnemyHealth health = selectedObject.GetComponent<EnemyHealth>();
+                if (health != null) health.TakeDamage(damage);
+            }
+        }
+    }
+
+    private void UpdateUI(InteractableObject interactable, WeaponPickup weapon)
+    {
+        if (Interaction_Info_UI != null) Interaction_Info_UI.SetActive(true);
+
+        // Update Text
+        if (interaction_text != null)
+        {
+            if (interactable) interaction_text.text = interactable.GetItemName();
+            else if (weapon) interaction_text.text = weapon.weaponName;
+        }
+
+        // Update Icons (Fixes the Hand Icon issue)
+        bool isPickable = weapon != null || (interactable != null && interactable.type == InteractableObject.InteractionType.Pickable);
+
+        if (centerDotImage != null) centerDotImage.gameObject.SetActive(!isPickable);
+        if (handIcon != null) handIcon.gameObject.SetActive(isPickable);
+    }
+
+    private void HandleInteraction(InteractableObject interactable, WeaponPickup weapon)
+    {
+        if (weapon != null)
+        {
+            weapon.Interact();
+        }
+        else if (interactable != null)
+        {
+            // Check for door
+            DoorInteractable door = interactable.GetComponentInParent<DoorInteractable>();
+            if (door != null)
+            {
+                door.ToogleDoor();
+            }
+            else
+            {
+                // General Pickup with Bow check
+                if (BowController.Instance == null || !BowController.Instance.IsBusy())
                 {
-                    EnemyHealth health = selectedObject.GetComponent<EnemyHealth>();
-                    if (health != null)
-                    {
-                        health.TakeDamage(damage);
-                    }
+                    interactable.PickUp();
                 }
             }
         }
@@ -168,16 +143,14 @@ public class SelectionManager : MonoBehaviour
         onTarget = false;
         if (Interaction_Info_UI != null) Interaction_Info_UI.SetActive(false);
         if (handIcon != null) handIcon.gameObject.SetActive(false);
-        if (centerDotImage != null) centerDotImage.gameObject.SetActive(true);
+        if (centerDotImage != null && this.enabled) centerDotImage.gameObject.SetActive(true);
     }
 
     public void DisableSelection()
     {
         this.enabled = false;
-        if (handIcon != null) handIcon.gameObject.SetActive(false);
+        ResetSelectionUI();
         if (centerDotImage != null) centerDotImage.gameObject.SetActive(false);
-        if (Interaction_Info_UI != null) Interaction_Info_UI.SetActive(false);
-        selectedObject = null;
     }
 
     public void EnableSelection()

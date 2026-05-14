@@ -22,38 +22,60 @@ public class book : MonoBehaviour
         {
             pages[i].transform.rotation = Quaternion.identity;
         }
-        pages[0].SetAsLastSibling();
-        backButton.SetActive(false);
 
+        if (pages.Count > 0)
+        {
+            pages[0].SetAsLastSibling();
+        }
+
+        index = -1; // Reset index to start
+        backButton.SetActive(false);
+        forwardButton.SetActive(true);
+    }
+
+    // --- FIX: SNAPS PAGE TO FINISH WHEN CLOSED ---
+    public void ResetState()
+    {
+        if (rotate && index >= 0 && index < pages.Count)
+        {
+            // If we were mid-rotate, find out if we were going forward or back
+            // and snap the rotation to the final destination immediately.
+            float finalAngle = (pages[index].rotation.eulerAngles.y > 90) ? 180 : 0;
+            pages[index].rotation = Quaternion.Euler(0, finalAngle, 0);
+        }
+
+        StopAllCoroutines();
+        rotate = false;
     }
 
     public void RotateForward()
     {
-        if (rotate == true) { return; }
+        if (rotate || index >= pages.Count - 1) { return; }
+
         index++;
-        float angle = 180; //in order to rotate the page forward, you need to set the rotation by 180 degrees around the y axis
+        float angle = 180;
         ForwardButtonActions();
         pages[index].SetAsLastSibling();
         StartCoroutine(Rotate(angle, true));
-
     }
 
     public void ForwardButtonActions()
     {
         if (backButton.activeInHierarchy == false)
         {
-            backButton.SetActive(true); //every time we turn the page forward, the back button should be activated
+            backButton.SetActive(true);
         }
         if (index == pages.Count - 1)
         {
-            forwardButton.SetActive(false); //if the page is last then we turn off the forward button
+            forwardButton.SetActive(false);
         }
     }
 
     public void RotateBack()
     {
-        if (rotate == true) { return; }
-        float angle = 0; //in order to rotate the page back, you need to set the rotation to 0 degrees around the y axis
+        if (rotate || index < 0) { return; }
+
+        float angle = 0;
         pages[index].SetAsLastSibling();
         BackButtonActions();
         StartCoroutine(Rotate(angle, false));
@@ -63,11 +85,11 @@ public class book : MonoBehaviour
     {
         if (forwardButton.activeInHierarchy == false)
         {
-            forwardButton.SetActive(true); //every time we turn the page back, the forward button should be activated
+            forwardButton.SetActive(true);
         }
         if (index - 1 == -1)
         {
-            backButton.SetActive(false); //if the page is first then we turn off the back button
+            backButton.SetActive(false);
         }
     }
 
@@ -79,23 +101,22 @@ public class book : MonoBehaviour
             rotate = true;
             Quaternion targetRotation = Quaternion.Euler(0, angle, 0);
             value += Time.deltaTime * pageSpeed;
-            pages[index].rotation = Quaternion.Slerp(pages[index].rotation, targetRotation, value); //smoothly turn the page
-            float angle1 = Quaternion.Angle(pages[index].rotation, targetRotation); //calculate the angle between the given angle of rotation and the current angle of rotation
-            if (angle1 < 0.1f)
+
+            // Safety check for the Error in image_3c801a.png
+            if (index < 0 || index >= pages.Count) { rotate = false; yield break; }
+
+            pages[index].rotation = Quaternion.Slerp(pages[index].rotation, targetRotation, value);
+
+            float angleDifference = Quaternion.Angle(pages[index].rotation, targetRotation);
+
+            if (angleDifference < 0.1f)
             {
-                if (forward == false)
-                {
-                    index--;
-                }
+                pages[index].rotation = targetRotation;
+                if (forward == false) { index--; }
                 rotate = false;
                 break;
-
             }
             yield return null;
-
         }
     }
-
-
-
 }

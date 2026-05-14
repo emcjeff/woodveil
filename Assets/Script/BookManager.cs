@@ -1,13 +1,13 @@
 using UnityEngine;
+using UnityEngine.SceneManagement; // Added for scene loading logic
 
 public class BookManager : MonoBehaviour
 {
     public static BookManager Instance { get; private set; }
 
-    public GameObject bookUI;     // The actual book pages UI
-    public GameObject BookPrompt; // The "E to Read" Sprite/Text group
+    public GameObject bookUI;
+    public GameObject BookPrompt;
 
-    // This is now public so Inventory and Crafting scripts can check it
     public bool isBookOpen = false;
     public bool hasBook = false;
 
@@ -20,12 +20,32 @@ public class BookManager : MonoBehaviour
         else
         {
             Instance = this;
+            // Ensure the BookManager travels between scenes
+            DontDestroyOnLoad(gameObject);
         }
     }
 
+    // --- SCENE TRANSITION FIX ---
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // When entering the Cave, force the book to a closed state
+        // This fixes buttons becoming unresponsive due to "ghost" states
+        CloseBook();
+    }
+    // ----------------------------
+
     void Update()
     {
-        // 1. Show/Hide the "E to Read" icon
         if (hasBook && !isBookOpen && !InventorySystem.Instance.isOpen && !CraftingSystem.Instance.isOpen)
         {
             BookPrompt.SetActive(true);
@@ -35,7 +55,6 @@ public class BookManager : MonoBehaviour
             BookPrompt.SetActive(false);
         }
 
-        // 2. Only open when 'E' is pressed, NOT when collected
         if (Input.GetKeyDown(KeyCode.E) && hasBook)
         {
             if (isBookOpen) CloseBook();
@@ -46,8 +65,6 @@ public class BookManager : MonoBehaviour
     public void CollectBook()
     {
         hasBook = true;
-        // Ensure this function ONLY sets the boolean. 
-        // If you have bookUI.SetActive(true) here, DELETE IT.
     }
 
     public void OpenBook()
@@ -55,11 +72,9 @@ public class BookManager : MonoBehaviour
         bookUI.SetActive(true);
         isBookOpen = true;
 
-        // UI Mouse Logic
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // Turn off the crosshair/selection while reading
         if (SelectionManager.Instance != null)
         {
             SelectionManager.Instance.DisableSelection();
@@ -68,14 +83,19 @@ public class BookManager : MonoBehaviour
 
     public void CloseBook()
     {
+        // Find the 'book' script on your UI
+        book pageScript = bookUI.GetComponentInChildren<book>();
+        if (pageScript != null)
+        {
+            pageScript.ResetState(); // This stops the Coroutine and unlocks 'rotate'
+        }
+
         bookUI.SetActive(false);
         isBookOpen = false;
 
-        // Return mouse to game control
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        // Turn the crosshair/selection back on
         if (SelectionManager.Instance != null)
         {
             SelectionManager.Instance.EnableSelection();

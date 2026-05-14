@@ -3514,7 +3514,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenu
   optionsPanel: {fileID: 1940096220}
-  mainButtonsGroup: {fileID: 0}
+  mainButtonsGroup: {fileID: 1297718287}
   mainMenuSceneName: MainMenu
 --- !u!4 &2109587051
 Transform:
