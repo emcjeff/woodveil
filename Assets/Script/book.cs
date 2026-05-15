@@ -4,8 +4,12 @@ using UnityEngine;
 
 public class book : MonoBehaviour
 {
-    [SerializeField] float pageSpeed = 0.5f;
+    [SerializeField] float pageSpeed = 1.5f;
     [SerializeField] List<Transform> pages;
+
+    // This list keeps track of which pages the player has found
+    public List<bool> unlockedPages;
+
     int index = -1;
     bool rotate = false;
     [SerializeField] GameObject backButton;
@@ -13,6 +17,15 @@ public class book : MonoBehaviour
 
     private void Start()
     {
+        // Initialize the unlocked list if it's empty
+        if (unlockedPages.Count == 0)
+        {
+            for (int i = 0; i < pages.Count; i++)
+            {
+                // Set first page (index 0) to true, others to false
+                unlockedPages.Add(i == 0);
+            }
+        }
         InitialState();
     }
 
@@ -20,55 +33,72 @@ public class book : MonoBehaviour
     {
         for (int i = 0; i < pages.Count; i++)
         {
-            pages[i].transform.rotation = Quaternion.identity;
+            if (pages[i] != null)
+            {
+                pages[i].transform.rotation = Quaternion.identity;
+                // Only show the page if it is unlocked
+                pages[i].gameObject.SetActive(unlockedPages[i]);
+            }
         }
 
-        if (pages.Count > 0)
+        // Stacking logic only for unlocked pages
+        for (int i = pages.Count - 1; i >= 0; i--)
         {
-            pages[0].SetAsLastSibling();
+            if (pages[i] != null && unlockedPages[i])
+                pages[i].SetAsLastSibling();
         }
 
-        index = -1; // Reset index to start
-        backButton.SetActive(false);
-        forwardButton.SetActive(true);
+        index = -1;
+        if (backButton != null) backButton.SetActive(false);
+
+        // Forward button only shows if the NEXT page is unlocked
+        CheckForwardButton();
     }
 
-    // --- FIX: SNAPS PAGE TO FINISH WHEN CLOSED ---
-    public void ResetState()
+    // Function to call when you pick up a page drop
+    public void UnlockPage(int pageIndex)
     {
-        if (rotate && index >= 0 && index < pages.Count)
+        if (pageIndex >= 0 && pageIndex < unlockedPages.Count)
         {
-            // If we were mid-rotate, find out if we were going forward or back
-            // and snap the rotation to the final destination immediately.
-            float finalAngle = (pages[index].rotation.eulerAngles.y > 90) ? 180 : 0;
-            pages[index].rotation = Quaternion.Euler(0, finalAngle, 0);
-        }
+            unlockedPages[pageIndex] = true;
 
-        StopAllCoroutines();
-        rotate = false;
+            // Debug here to make sure this code is actually running!
+            Debug.Log("Page " + pageIndex + " is now set to TRUE");
+
+            // Refresh the objects
+            InitialState();
+        }
+    }
+
+    private void CheckForwardButton()
+    {
+        if (forwardButton == null) return;
+
+        int nextIndex = index + 1;
+        // Show forward button only if the next page exists AND is unlocked
+        if (nextIndex < pages.Count && unlockedPages[nextIndex])
+        {
+            forwardButton.SetActive(true);
+        }
+        else
+        {
+            forwardButton.SetActive(false);
+        }
     }
 
     public void RotateForward()
     {
-        if (rotate || index >= pages.Count - 1) { return; }
+        int nextIndex = index + 1;
+        if (rotate || nextIndex >= pages.Count || !unlockedPages[nextIndex]) { return; }
 
         index++;
         float angle = 180;
-        ForwardButtonActions();
         pages[index].SetAsLastSibling();
-        StartCoroutine(Rotate(angle, true));
-    }
 
-    public void ForwardButtonActions()
-    {
-        if (backButton.activeInHierarchy == false)
-        {
-            backButton.SetActive(true);
-        }
-        if (index == pages.Count - 1)
-        {
-            forwardButton.SetActive(false);
-        }
+        if (backButton != null) backButton.SetActive(true);
+        CheckForwardButton();
+
+        StartCoroutine(Rotate(angle, true));
     }
 
     public void RotateBack()
@@ -77,20 +107,11 @@ public class book : MonoBehaviour
 
         float angle = 0;
         pages[index].SetAsLastSibling();
-        BackButtonActions();
-        StartCoroutine(Rotate(angle, false));
-    }
 
-    public void BackButtonActions()
-    {
-        if (forwardButton.activeInHierarchy == false)
-        {
-            forwardButton.SetActive(true);
-        }
-        if (index - 1 == -1)
-        {
-            backButton.SetActive(false);
-        }
+        if (forwardButton != null) forwardButton.SetActive(true);
+        if (index - 1 == -1 && backButton != null) backButton.SetActive(false);
+
+        StartCoroutine(Rotate(angle, false));
     }
 
     IEnumerator Rotate(float angle, bool forward)
@@ -102,21 +123,29 @@ public class book : MonoBehaviour
             Quaternion targetRotation = Quaternion.Euler(0, angle, 0);
             value += Time.deltaTime * pageSpeed;
 
-            // Safety check for the Error in image_3c801a.png
             if (index < 0 || index >= pages.Count) { rotate = false; yield break; }
 
             pages[index].rotation = Quaternion.Slerp(pages[index].rotation, targetRotation, value);
 
-            float angleDifference = Quaternion.Angle(pages[index].rotation, targetRotation);
-
-            if (angleDifference < 0.1f)
+            if (Quaternion.Angle(pages[index].rotation, targetRotation) < 0.1f)
             {
                 pages[index].rotation = targetRotation;
-                if (forward == false) { index--; }
+                if (!forward) { index--; }
                 rotate = false;
                 break;
             }
             yield return null;
         }
+    }
+
+    public void ResetState()
+    {
+        if (rotate && index >= 0 && index < pages.Count)
+        {
+            float finalAngle = (pages[index].rotation.eulerAngles.y > 90) ? 180 : 0;
+            pages[index].rotation = Quaternion.Euler(0, finalAngle, 0);
+        }
+        StopAllCoroutines();
+        rotate = false;
     }
 }

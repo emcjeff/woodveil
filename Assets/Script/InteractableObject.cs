@@ -10,17 +10,15 @@ public class InteractableObject : MonoBehaviour
     public bool playerInRange;
     public string ItemName;
 
-    public string GetItemName()
-    {
-        return ItemName;
-    }
+    [Header("Page Settings")]
+    [Tooltip("Only used if ItemName is 'Page'")]
+    public int pageIndex; // 0 for Page 1, 1 for Page 2, etc.
+
+    public string GetItemName() { return ItemName; }
 
     public void PickUp()
     {
-        if (type == InteractionType.ObservationOnly)
-        {
-            return;
-        }
+        if (type == InteractionType.ObservationOnly) return;
 
         // 1. SPECIAL LOGIC: The Book
         if (ItemName.ToLower() == "book")
@@ -33,7 +31,26 @@ public class InteractableObject : MonoBehaviour
             }
         }
 
-        // 2. SPECIAL LOGIC: The Helmet (Headlamp)
+        // 2. SPECIAL LOGIC: The Pages
+        if (ItemName.ToLower() == "page")
+        {
+            // Updated to the non-obsolete version to fix your Warning
+            book pageSystem = Object.FindAnyObjectByType<book>(FindObjectsInactive.Include);
+
+            if (pageSystem != null)
+            {
+                pageSystem.UnlockPage(pageIndex);
+                Debug.Log("Unlocked Page index: " + pageIndex);
+                Destroy(gameObject);
+                return;
+            }
+            else
+            {
+                Debug.LogWarning("Could not find the Book script on the UI!");
+            }
+        }
+
+        // 3. SPECIAL LOGIC: The Helmet
         if (ItemName.ToLower() == "helmet")
         {
             if (FlashlightController.Instance != null)
@@ -42,23 +59,15 @@ public class InteractableObject : MonoBehaviour
                 Destroy(gameObject);
                 return;
             }
-            else
-            {
-                Debug.LogWarning("Found Helmet, but FlashlightController.Instance is missing from the Player!");
-            }
         }
 
-        // 3. REGULAR ITEMS: (Stone, Stick, etc.)
+        // 4. REGULAR ITEMS
         if (InventorySystem.Instance != null)
         {
             if (!InventorySystem.Instance.CheckIfFull())
             {
                 InventorySystem.Instance.AddToInventory(ItemName);
                 Destroy(gameObject);
-            }
-            else
-            {
-                Debug.Log("Inventory is full!");
             }
         }
     }
