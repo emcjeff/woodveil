@@ -395,46 +395,11 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1558803295}
-    - target: {fileID: 1484130129789955613, guid: 51cf085d79ad2754f921458d11d2dd1f,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: LongReturnToMenu
-      objectReference: {fileID: 0}
-    - target: {fileID: 1484130129789955613, guid: 51cf085d79ad2754f921458d11d2dd1f,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: MainMenu, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 3301690219380677832, guid: 51cf085d79ad2754f921458d11d2dd1f,
-        type: 3}
-      propertyPath: m_Name
-      value: Book Prompt
-      objectReference: {fileID: 0}
-    - target: {fileID: 3546042096822216947, guid: 51cf085d79ad2754f921458d11d2dd1f,
-        type: 3}
-      propertyPath: m_Name
-      value: Options Panel
-      objectReference: {fileID: 0}
     - target: {fileID: 4651479910928812409, guid: 51cf085d79ad2754f921458d11d2dd1f,
         type: 3}
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1444600731}
-    - target: {fileID: 4651479910928812409, guid: 51cf085d79ad2754f921458d11d2dd1f,
-        type: 3}
-      propertyPath: m_RenderMode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4651479910928812409, guid: 51cf085d79ad2754f921458d11d2dd1f,
-        type: 3}
-      propertyPath: m_PlaneDistance
-      value: 936.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 4903246228774433221, guid: 51cf085d79ad2754f921458d11d2dd1f,
-        type: 3}
-      propertyPath: m_Name
-      value: Book UI
-      objectReference: {fileID: 0}
     - target: {fileID: 5159258183131890012, guid: 51cf085d79ad2754f921458d11d2dd1f,
         type: 3}
       propertyPath: m_Name
@@ -445,11 +410,6 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1558803293}
-    - target: {fileID: 7514874241068463118, guid: 51cf085d79ad2754f921458d11d2dd1f,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: Resume
-      objectReference: {fileID: 0}
     - target: {fileID: 7568515969801836384, guid: 51cf085d79ad2754f921458d11d2dd1f,
         type: 3}
       propertyPath: m_AnchorMax.x
@@ -738,8 +698,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.65932, y: 269.99}
-  m_SizeDelta: {x: 1918.7, y: 539.99}
+  m_AnchoredPosition: {x: -0.0014572, y: -6}
+  m_SizeDelta: {x: 2033, y: 953.4324}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &387705837
 MonoBehaviour:
@@ -754,15 +714,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.6830188, g: 0.3595514, b: 0.3595514, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 1606606626, guid: fe721af5f7c7fe043871cac4e184a513, type: 3}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: 094cebed022eea140b3a2c5a3bb9927f, type: 3}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -1314,7 +1274,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 0.99869704, b: 0.99433964, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1363,17 +1323,17 @@ PrefabInstance:
     - target: {fileID: 3755692188965166534, guid: 0e5c481d3426933499de4e1b09cb4640,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 959
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3755692188965166534, guid: 0e5c481d3426933499de4e1b09cb4640,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 534
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3755692188965166534, guid: 0e5c481d3426933499de4e1b09cb4640,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 395.69565
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3755692188965166534, guid: 0e5c481d3426933499de4e1b09cb4640,
         type: 3}
@@ -1647,7 +1607,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.6528301, g: 0.6528301, b: 0.6528301, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2021,7 +1981,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.8415094, g: 0.8415094, b: 0.8415094, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2234,7 +2194,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -379, y: -230.01}
+  m_AnchoredPosition: {x: -436, y: -230.01}
   m_SizeDelta: {x: 585.4619, y: 559.98}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1297718289
@@ -3303,7 +3263,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.6226415, g: 0.6226415, b: 0.6226415, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3529,7 +3489,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.6075471, g: 0.6075471, b: 0.6075471, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4318,8 +4278,6 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1441568750}
-  - {fileID: 353157737}
-  - {fileID: 2109587051}
   - {fileID: 711741544}
   - {fileID: 337332981}
   - {fileID: 1454115399}
@@ -4329,3 +4287,5 @@ SceneRoots:
   - {fileID: 1572354648}
   - {fileID: 726165036}
   - {fileID: 652500544}
+  - {fileID: 353157737}
+  - {fileID: 2109587051}

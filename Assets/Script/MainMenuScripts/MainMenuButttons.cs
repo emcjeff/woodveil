@@ -14,54 +14,84 @@ public class MainMenu : MonoBehaviour
     public string firstLevelName = "wodbeyl";
     public string gameOverSceneName = "GameOver";
 
-    // Static variables survive scene changes
     public static bool isRetrying = false;
-    public static bool isLongReturning = false; // The Passport
+    public static bool isLongReturning = false;
 
-    void Start()
+    private CanvasGroup gameplayCanvasGroup;
+
+    void Awake()
     {
-        // Forces the game to UNFREEZE every time a scene starts
+        // 1. Setup Cursor for Menu
         Time.timeScale = 1f;
-
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // Auto-load logic for the "Retry" button feature
-        if (isRetrying && SceneManager.GetActiveScene().name == mainMenuSceneName)
+        // 2. Find the Canvas and its CanvasGroup
+        GameObject canvasObj = GameObject.Find("Canvas");
+        if (canvasObj != null)
         {
-            StartCoroutine(AutoLoadLevelSequence());
+            gameplayCanvasGroup = canvasObj.GetComponent<CanvasGroup>();
+
+            // If it doesn't have a CanvasGroup yet, add one automatically!
+            if (gameplayCanvasGroup == null)
+            {
+                gameplayCanvasGroup = canvasObj.AddComponent<CanvasGroup>();
+            }
+
+            // HIDE it for the menu without disabling the object
+            SetCanvasVisible(false);
         }
     }
 
-    // --- 1. THE LONG RETURN (The Scenic Route) ---
-    public void LongReturnToMenu()
+    void Update()
     {
-        Time.timeScale = 1f;
-        isRetrying = false;
-
-        // We set the passport to TRUE so the next scene knows to take us home
-        isLongReturning = true;
-
-        // Just load the scene. The "AutoReturn" script in the GameOver scene will do the rest.
-        SceneManager.LoadScene(gameOverSceneName);
+        // 3. Keep fighting for the cursor in the Build menu
+        if (SceneManager.GetActiveScene().name == mainMenuSceneName)
+        {
+            if (Cursor.lockState != CursorLockMode.None)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+        }
     }
 
-    // --- 2. THE NORMAL RETURN (Instant) ---
+    // Helper function to show/hide UI smoothly
+    void SetCanvasVisible(bool visible)
+    {
+        if (gameplayCanvasGroup != null)
+        {
+            gameplayCanvasGroup.alpha = visible ? 1f : 0f;
+            gameplayCanvasGroup.interactable = visible;
+            gameplayCanvasGroup.blocksRaycasts = visible;
+        }
+    }
+
+    public void PlayGame()
+    {
+        // SHOW the UI just before loading the game
+        SetCanvasVisible(true);
+
+        isRetrying = false;
+        isLongReturning = false;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(firstLevelName);
+    }
+
     public void ReturnToMainMenu()
     {
         Time.timeScale = 1f;
         isRetrying = false;
-        isLongReturning = false; // Safety reset
+        isLongReturning = false;
         SceneManager.LoadScene(mainMenuSceneName);
     }
 
-    // --- NAVIGATION & RETRY ---
-
-    public void PlayGame()
+    public void LongReturnToMenu()
     {
+        Time.timeScale = 1f;
         isRetrying = false;
-        isLongReturning = false;
-        SceneManager.LoadScene(firstLevelName);
+        isLongReturning = true;
+        SceneManager.LoadScene(gameOverSceneName);
     }
 
     public void RetryGame()
@@ -72,15 +102,6 @@ public class MainMenu : MonoBehaviour
         SceneManager.LoadScene(mainMenuSceneName);
     }
 
-    private IEnumerator AutoLoadLevelSequence()
-    {
-        isRetrying = false;
-        yield return new WaitForSecondsRealtime(0.2f);
-        SceneManager.LoadScene(firstLevelName);
-    }
-
-    // --- UI HELPERS ---
-
     public void ResumeGame()
     {
         if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
@@ -89,13 +110,23 @@ public class MainMenu : MonoBehaviour
         Cursor.visible = false;
     }
 
-    public void OpenOptions() => ToggleOptions(true);
-    public void BackFromOptions() => ToggleOptions(false);
-
-    private void ToggleOptions(bool showOptions)
+    private IEnumerator AutoLoadLevelSequence()
     {
-        if (optionsPanel != null) optionsPanel.SetActive(showOptions);
-        if (mainButtonsGroup != null) mainButtonsGroup.SetActive(!showOptions);
+        isRetrying = false;
+        yield return new WaitForSecondsRealtime(0.2f);
+        SceneManager.LoadScene(firstLevelName);
+    }
+
+    public void OpenOptions()
+    {
+        if (optionsPanel != null) optionsPanel.SetActive(true);
+        if (mainButtonsGroup != null) mainButtonsGroup.SetActive(false);
+    }
+
+    public void BackFromOptions()
+    {
+        if (optionsPanel != null) optionsPanel.SetActive(false);
+        if (mainButtonsGroup != null) mainButtonsGroup.SetActive(true);
     }
 
     public void QuitGame()
