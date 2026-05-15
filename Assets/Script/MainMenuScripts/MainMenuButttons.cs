@@ -1,51 +1,106 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class MainMenu : MonoBehaviour
 {
+    [Header("UI Panels")]
     public GameObject optionsPanel;
     public GameObject mainButtonsGroup;
+    public GameObject pauseMenuPanel;
+
+    [Header("Scene Names")]
     public string mainMenuSceneName = "MainMenu";
+    public string firstLevelName = "wodbeyl";
+    public string gameOverSceneName = "GameOver";
+
+    // Static variables survive scene changes
+    public static bool isRetrying = false;
+    public static bool isLongReturning = false; // The Passport
 
     void Start()
     {
-        // Ensures the mouse is visible so you can click the Restart/Menu buttons
+        // Forces the game to UNFREEZE every time a scene starts
+        Time.timeScale = 1f;
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        // Auto-load logic for the "Retry" button feature
+        if (isRetrying && SceneManager.GetActiveScene().name == mainMenuSceneName)
+        {
+            StartCoroutine(AutoLoadLevelSequence());
+        }
     }
 
-    public void PlayGame()
+    // --- 1. THE LONG RETURN (The Scenic Route) ---
+    public void LongReturnToMenu()
     {
-        // 1. Clear the saved exit point so the player starts fresh in the world
-        PlayerPrefs.DeleteKey("LastExit");
+        Time.timeScale = 1f;
+        isRetrying = false;
 
-        // 2. Load the first game scene (Wodbeyl)
-        SceneManager.LoadScene("wodbeyl");
+        // We set the passport to TRUE so the next scene knows to take us home
+        isLongReturning = true;
+
+        // Just load the scene. The "AutoReturn" script in the GameOver scene will do the rest.
+        SceneManager.LoadScene(gameOverSceneName);
     }
 
-    // --- NEW FUNCTION FOR GAME OVER ---
+    // --- 2. THE NORMAL RETURN (Instant) ---
     public void ReturnToMainMenu()
     {
-        // This takes the player back to the title screen
+        Time.timeScale = 1f;
+        isRetrying = false;
+        isLongReturning = false; // Safety reset
         SceneManager.LoadScene(mainMenuSceneName);
     }
 
-    public void OpenOptions()
+    // --- NAVIGATION & RETRY ---
+
+    public void PlayGame()
     {
-        if (optionsPanel != null) optionsPanel.SetActive(true);
-        if (mainButtonsGroup != null) mainButtonsGroup.SetActive(false);
+        isRetrying = false;
+        isLongReturning = false;
+        SceneManager.LoadScene(firstLevelName);
     }
 
-    public void BackFromOptions()
+    public void RetryGame()
     {
-        if (optionsPanel != null) optionsPanel.SetActive(false);
-        if (mainButtonsGroup != null) mainButtonsGroup.SetActive(true);
+        Time.timeScale = 1f;
+        isRetrying = true;
+        isLongReturning = false;
+        SceneManager.LoadScene(mainMenuSceneName);
+    }
+
+    private IEnumerator AutoLoadLevelSequence()
+    {
+        isRetrying = false;
+        yield return new WaitForSecondsRealtime(0.2f);
+        SceneManager.LoadScene(firstLevelName);
+    }
+
+    // --- UI HELPERS ---
+
+    public void ResumeGame()
+    {
+        if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    public void OpenOptions() => ToggleOptions(true);
+    public void BackFromOptions() => ToggleOptions(false);
+
+    private void ToggleOptions(bool showOptions)
+    {
+        if (optionsPanel != null) optionsPanel.SetActive(showOptions);
+        if (mainButtonsGroup != null) mainButtonsGroup.SetActive(!showOptions);
     }
 
     public void QuitGame()
     {
         Application.Quit();
-
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #endif

@@ -376,6 +376,12 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &335418034 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 575107363030961212, guid: 51cf085d79ad2754f921458d11d2dd1f,
+    type: 3}
+  m_PrefabInstance: {fileID: 337332981}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &337332981
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -384,6 +390,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1484130129789955613, guid: 51cf085d79ad2754f921458d11d2dd1f,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1558803295}
+    - target: {fileID: 1484130129789955613, guid: 51cf085d79ad2754f921458d11d2dd1f,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: LongReturnToMenu
+      objectReference: {fileID: 0}
+    - target: {fileID: 1484130129789955613, guid: 51cf085d79ad2754f921458d11d2dd1f,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: MainMenu, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 3301690219380677832, guid: 51cf085d79ad2754f921458d11d2dd1f,
         type: 3}
       propertyPath: m_Name
@@ -418,6 +439,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Canvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 7514874241068463118, guid: 51cf085d79ad2754f921458d11d2dd1f,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1558803293}
+    - target: {fileID: 7514874241068463118, guid: 51cf085d79ad2754f921458d11d2dd1f,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: Resume
       objectReference: {fileID: 0}
     - target: {fileID: 7568515969801836384, guid: 51cf085d79ad2754f921458d11d2dd1f,
         type: 3}
@@ -1226,7 +1257,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8950349397136221078, guid: 603e42a2ea56c8d49b1cbf6436f1f465,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1558803295}
   m_SourcePrefab: {fileID: 100100000, guid: 603e42a2ea56c8d49b1cbf6436f1f465, type: 3}
 --- !u!1 &661042647
 GameObject:
@@ -2753,6 +2788,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d110df78014c9149bcf37b3cd7d5238, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PersistentUI
+--- !u!1 &1558803291 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8950349397136221078, guid: 603e42a2ea56c8d49b1cbf6436f1f465,
+    type: 3}
+  m_PrefabInstance: {fileID: 652500544}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1558803293 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8593501976900386537, guid: 603e42a2ea56c8d49b1cbf6436f1f465,
+    type: 3}
+  m_PrefabInstance: {fileID: 652500544}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1558803291}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: feb859d08703d0340a0e01f5dd58b39c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PauseManager
+--- !u!114 &1558803295
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1558803291}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d359bfef0e067004792e59286a3faa03, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MainMenu
+  optionsPanel: {fileID: 335418034}
+  mainButtonsGroup: {fileID: 335418034}
+  pauseMenuPanel: {fileID: 1212487202}
+  mainMenuSceneName: MainMenu
+  firstLevelName: wodbeyl
+  gameOverSceneName: GameOver
 --- !u!1001 &1572354648
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4187,7 +4258,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MainMenu
   optionsPanel: {fileID: 1940096220}
   mainButtonsGroup: {fileID: 1297718287}
+  pauseMenuPanel: {fileID: 0}
   mainMenuSceneName: MainMenu
+  firstLevelName: wodbeyl
+  gameOverSceneName: GameOver
 --- !u!4 &2109587051
 Transform:
   m_ObjectHideFlags: 0
@@ -4245,10 +4319,10 @@ SceneRoots:
   m_Roots:
   - {fileID: 1441568750}
   - {fileID: 353157737}
-  - {fileID: 1454115399}
   - {fileID: 2109587051}
   - {fileID: 711741544}
   - {fileID: 337332981}
+  - {fileID: 1454115399}
   - {fileID: 1693377250}
   - {fileID: 2014870851}
   - {fileID: 269025384}
