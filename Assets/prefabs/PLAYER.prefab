@@ -167,10 +167,10 @@ Light:
   m_Enabled: 1
   serializedVersion: 12
   m_Type: 0
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 30
-  m_Range: 9.87
-  m_SpotAngle: 100
+  m_Color: {r: 1, g: 0.93944085, b: 0.83584905, a: 1}
+  m_Intensity: 100
+  m_Range: 20
+  m_SpotAngle: 90
   m_InnerSpotAngle: 60
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
@@ -543,7 +543,7 @@ CharacterController:
   m_Height: 2
   m_Radius: 0.5
   m_SlopeLimit: 5
-  m_StepOffset: 0.7
+  m_StepOffset: 2
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
@@ -559,7 +559,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 908f9fb94415f214096d1bdd8761e02a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mouseSensitivity: 70
+  mouseSensitivity: 50
   orientation: {fileID: 6411296157368833232}
 --- !u!114 &8277241535432479630
 MonoBehaviour:
@@ -574,7 +574,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement1
   controller: {fileID: 6686683165565631499}
-  speed: 12
+  speed: 8
   gravity: -31
   jumpHeight: 3
   groundCheck: {fileID: 8066214346398360035}

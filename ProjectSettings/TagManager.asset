@@ -9,6 +9,7 @@ TagManager:
   - pickable
   - Door
   - Enemy
+  - SpawnPoint
   layers:
   - Default
   - TransparentFX

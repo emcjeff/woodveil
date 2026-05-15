@@ -24,10 +24,9 @@ public class EventSystemPersistence : MonoBehaviour
 
     private void Update()
     {
-        // 2. MAIN MENU CLEANUP: 
-        // When going back to the menu, we destroy this persistent copy.
-        // This allows a fresh menu EventSystem to take over.
-        if (SceneManager.GetActiveScene().name == "MainMenu")
+        string currentScene = SceneManager.GetActiveScene().name;
+
+        if (currentScene == " " || currentScene == "GameOver")
         {
             Destroy(gameObject);
         }

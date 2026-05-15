@@ -17,8 +17,9 @@ public class PersistentUI : MonoBehaviour
 
     void Update()
     {
-        // MENU CLEANUP: Ensures the UI doesn't block the actual Main Menu screen
-        if (SceneManager.GetActiveScene().name == "MainMenu")
+        string currentScene = SceneManager.GetActiveScene().name;
+
+        if (currentScene == " " || currentScene == "GameOver")
         {
             Destroy(gameObject);
         }
