@@ -155,6 +155,22 @@ public class InventorySystem : MonoBehaviour
         }
         return true;
     }
+    public int GetTotalItemCount(string targetItemName)
+    {
+        int total = 0;
+        foreach (GameObject slot in slotList)
+        {
+            if (slot.transform.childCount > 0)
+            {
+                InventoryItem item = slot.transform.GetChild(0).GetComponent<InventoryItem>();
+                if (item != null && item.itemName == targetItemName)
+                {
+                    total += item.amount;
+                }
+            }
+        }
+        return total;
+    }
 
     public void RemoveItem(string nameToRemove, int amountToRemove)
     {

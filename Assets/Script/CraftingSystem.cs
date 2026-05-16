@@ -22,7 +22,6 @@ public class CraftingSystem : MonoBehaviour
     // --- Arrow UI ---
     private Button craftArrowBTN;
     private TextMeshProUGUI ArrowReq1, ArrowReq2;
-    // Changed "Arrow" to "ArrowUI" to match your Resources folder
     public Blueprint ArrowBLP = new Blueprint("ArrowUI", 2, "Stone", 1, "Stick", 1);
 
     public bool isOpen;
@@ -79,7 +78,7 @@ public class CraftingSystem : MonoBehaviour
         // If it's ArrowUI, give 10. Otherwise, give 1.
         int amountToGive = (blueprintToCraft.itemName == "ArrowUI") ? 10 : 1;
 
-        // 2. Add to inventory using the new amountToGive variable
+        // 2. Add to inventory using the amountToGive variable
         InventorySystem.Instance.AddToInventory(blueprintToCraft.itemName, amountToGive);
 
         // 3. Remove the requirements from the inventory
@@ -138,14 +137,13 @@ public class CraftingSystem : MonoBehaviour
 
         int stone_count = 0;
         int stick_count = 0;
-        bool hasAxe = false; // New variable to track the Axe
+        bool hasAxe = false;
 
         foreach (string itemName in InventorySystem.Instance.itemList)
         {
             if (itemName == "Stone") stone_count++;
             else if (itemName == "Stick") stick_count++;
 
-            // Check if the list contains the Axe
             if (itemName == "Axe") hasAxe = true;
         }
 
@@ -153,17 +151,14 @@ public class CraftingSystem : MonoBehaviour
         AxeReq1.text = "3 Stone [" + stone_count + "]";
         AxeReq2.text = "3 Stick [" + stick_count + "]";
 
-        // Logic: Only show the button if you DON'T have an axe AND you have the materials
         if (hasAxe)
         {
             craftAxeBTN.gameObject.SetActive(false);
-            // Optional: Change the text to show it's already owned
             AxeReq1.text = "ALREADY";
             AxeReq2.text = "OWNED";
         }
         else
         {
-            // Show button only if materials are met
             craftAxeBTN.gameObject.SetActive(stone_count >= 3 && stick_count >= 3);
         }
 

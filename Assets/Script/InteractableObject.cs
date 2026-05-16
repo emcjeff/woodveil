@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class InteractableObject : MonoBehaviour
@@ -8,6 +6,8 @@ public class InteractableObject : MonoBehaviour
     public InteractionType type;
 
     public bool playerInRange;
+
+    [Tooltip("Set this to 'Book', 'Page', 'Headlamp', 'Stone', etc.")]
     public string ItemName;
 
     [Header("Page Settings")]
@@ -34,7 +34,6 @@ public class InteractableObject : MonoBehaviour
         // 2. SPECIAL LOGIC: The Pages
         if (ItemName.ToLower() == "page")
         {
-            // Updated to the non-obsolete version to fix your Warning
             book pageSystem = Object.FindAnyObjectByType<book>(FindObjectsInactive.Include);
 
             if (pageSystem != null)
@@ -50,12 +49,19 @@ public class InteractableObject : MonoBehaviour
             }
         }
 
-        // 3. SPECIAL LOGIC: The Helmet
-        if (ItemName.ToLower() == "helmet")
+        // 3. SPECIAL LOGIC: The Headlamp (Changed from helmet!)
+        if (ItemName.ToLower() == "headlamp")
         {
             if (FlashlightController.Instance != null)
             {
-                FlashlightController.Instance.PickUpHelmet();
+                FlashlightController.Instance.PickUpHelmet(); // Keeps your old flashlight system hook working
+
+                // Cross out Objective 5 in your Book!
+                if (BookManager.Instance != null)
+                {
+                    BookManager.Instance.CompleteObjective(5);
+                }
+
                 Destroy(gameObject);
                 return;
             }
