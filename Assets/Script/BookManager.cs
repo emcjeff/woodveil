@@ -28,6 +28,12 @@ public class BookManager : MonoBehaviour
     [Tooltip("How many arrows the player must actively hold in their inventory for Objective 4")]
     [SerializeField] private int arrowsRequired = 100;
 
+    [Header("Editor Testing Toggles")]
+    [Tooltip("Check this to manually override objectives using the array below for testing weapons/rewards!")]
+    [SerializeField] private bool enableTestToggles = false;
+    [Tooltip("Elements 0-4 correspond to Objectives 1-5. Check them to force complete them in real-time.")]
+    [SerializeField] private bool[] testObjectivesState = new bool[5];
+
     [HideInInspector] public bool isBookOpen = false;
     [HideInInspector] public bool hasBook = false;
 
@@ -35,11 +41,6 @@ public class BookManager : MonoBehaviour
     private bool isIntroPaperActive = false;
 
     // Static array saves which objectives are finished across death/reloads during runtime
-    // Index 0 = Objective 1 (Find Book)
-    // Index 1 = Objective 2
-    // Index 2 = Objective 3 (Slime Hunt)
-    // Index 3 = Objective 4 (Have 100 Arrows)
-    // Index 4 = Objective 5
     private static bool[] completedObjectives = new bool[5];
     private static bool hasShownIntroPaper = false;
 
@@ -78,6 +79,16 @@ public class BookManager : MonoBehaviour
 
     void Update()
     {
+        // --- LIVE EDITOR TESTING LINK ---
+        if (enableTestToggles && Application.isPlaying)
+        {
+            for (int i = 0; i < completedObjectives.Length; i++)
+            {
+                completedObjectives[i] = testObjectivesState[i];
+            }
+            FindAndRefreshLines();
+        }
+
         if (hasBook && !isBookOpen && !InventorySystem.Instance.isOpen && !CraftingSystem.Instance.isOpen)
         {
             BookPrompt.SetActive(true);
@@ -143,7 +154,7 @@ public class BookManager : MonoBehaviour
     // --- TRACK SLIME KILLS (Event-driven) ---
     public void RegisterSlimeKill()
     {
-        // Objective 3 is at index 2
+        if (enableTestToggles) return; // Skip normal progression calculations if testing
         if (completedObjectives[2]) return;
 
         currentSlimeKills++;
@@ -151,7 +162,7 @@ public class BookManager : MonoBehaviour
 
         if (currentSlimeKills >= slimesRequired)
         {
-            CompleteObjective(3); // Objective 3 is Slime Hunt
+            CompleteObjective(3);
             Debug.Log("Quest Complete: 10 Slimes defeated!");
         }
     }
@@ -159,21 +170,19 @@ public class BookManager : MonoBehaviour
     // --- DYNAMIC INVENTORY CHECK FOR ARROWS ---
     private void CheckInventoryObjectives()
     {
+        if (enableTestToggles) return; // Skip inventory calculations if testing via inspector
+
         if (InventorySystem.Instance != null)
         {
-            // Query the inventory for the exact amount of "ArrowUI" items currently sitting in slots
             int currentArrowsInInventory = InventorySystem.Instance.GetTotalItemCount("ArrowUI");
-
             Debug.Log($"Checking book quest: Holding {currentArrowsInInventory}/{arrowsRequired} arrows.");
 
-            // Update Objective 4 (index 3) based on active item counts
             if (currentArrowsInInventory >= arrowsRequired)
             {
                 completedObjectives[3] = true;
             }
             else
             {
-                // This makes it completely dynamic! If they fire or drop arrows below the count, the line un-strikes.
                 completedObjectives[3] = false;
             }
         }
@@ -181,7 +190,6 @@ public class BookManager : MonoBehaviour
 
     public void OpenBook()
     {
-        // Always scan inventory counts to set the active/inactive state of Objective 4 lines before opening
         CheckInventoryObjectives();
 
         bookUI.SetActive(true);
@@ -220,6 +228,8 @@ public class BookManager : MonoBehaviour
 
     public void CompleteObjective(int objectiveNumber)
     {
+        if (enableTestToggles) return; // Ignore standard execution signals during test loops
+
         int index = objectiveNumber - 1;
         if (index >= 0 && index < completedObjectives.Length)
         {
@@ -258,6 +268,29 @@ public class BookManager : MonoBehaviour
             {
                 objectiveCrossOutLines[i].SetActive(completedObjectives[i]);
             }
+        }
+
+        // Run checking framework to decide if Bow Controller gains the burst buff
+        CheckMasterRewardUnlock();
+    }
+
+    private void CheckMasterRewardUnlock()
+    {
+        bool allDone = true;
+
+        for (int i = 0; i < completedObjectives.Length; i++)
+        {
+            if (!completedObjectives[i])
+            {
+                allDone = false;
+                break;
+            }
+        }
+
+        if (BowController.Instance != null)
+        {
+            // Connect directly to the bow toggle flag dynamically
+            BowController.Instance.isDoubleShotUnlocked = allDone;
         }
     }
 }

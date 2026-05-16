@@ -22,6 +22,13 @@ public class BowController : MonoBehaviour
     public float tapThreshold = 0.2f;
     public float shootCooldown = 0.5f;
 
+    [Header("Master Quest Reward")]
+    [Tooltip("Managed automatically by the BookManager when all 5 quests are completed")]
+    public bool isDoubleShotUnlocked = false;
+
+    [Tooltip("The time delay (in seconds) between the first and second arrow during a double shot")]
+    [SerializeField] private float burstDelay = 0.15f;
+
     private bool isCharging = false;
     private float chargeStartTime = 0f;
     private float lastShotTime = -10f;
@@ -54,16 +61,18 @@ public class BowController : MonoBehaviour
 
     private void Update()
     {
+        // Don't allow shooting if any UI panels are open
         if (InventorySystem.Instance != null && InventorySystem.Instance.isOpen) return;
         if (CraftingSystem.Instance != null && CraftingSystem.Instance.isOpen) return;
+        if (BookManager.Instance != null && BookManager.Instance.isBookOpen) return;
 
+        // Manage cooldown restrictions
         if (Time.time < lastShotTime + shootCooldown) return;
 
-        // --- CHECK FOR AMMO BEFORE STARTING ---
+        // --- CHECK FOR AMMO BEFORE STARTING DRAW ---
         if (Input.GetMouseButtonDown(0))
         {
-            // We check if "ArrowUI" (your inventory icon name) is in the list
-            if (InventorySystem.Instance.itemList.Contains("ArrowUI"))
+            if (InventorySystem.Instance != null && InventorySystem.Instance.itemList.Contains("ArrowUI"))
             {
                 chargeStartTime = Time.time;
                 isCharging = true;
@@ -74,6 +83,7 @@ public class BowController : MonoBehaviour
             }
         }
 
+        // Handle animation state while drawing back
         if (isCharging && Input.GetMouseButton(0))
         {
             if (Time.time - chargeStartTime > tapThreshold)
@@ -82,6 +92,7 @@ public class BowController : MonoBehaviour
             }
         }
 
+        // Release the arrow on Mouse Up
         if (Input.GetMouseButtonUp(0) && isCharging)
         {
             float holdDuration = Time.time - chargeStartTime;
@@ -91,10 +102,14 @@ public class BowController : MonoBehaviour
                 float chargePercent = Mathf.Clamp01((holdDuration - tapThreshold) / timeToMaxCharge);
                 float finalForce = Mathf.Lerp(minForce, maxForce, chargePercent);
 
+                // Fire the weapon system
                 ShootArrow(finalForce);
 
-                // --- CONSUME THE AMMO ---
-                InventorySystem.Instance.RemoveItem("ArrowUI", 1);
+                // --- CONSUME ONLY 1 AMMO (Perk bonus!) ---
+                if (InventorySystem.Instance != null)
+                {
+                    InventorySystem.Instance.RemoveItem("ArrowUI", 1);
+                }
 
                 lastShotTime = Time.time;
             }
@@ -116,16 +131,53 @@ public class BowController : MonoBehaviour
         fired = true;
 
         Vector3 shootingDirection = CalculateDirection().normalized;
-        Quaternion arrowRotation = Quaternion.LookRotation(shootingDirection);
         Vector3 safeSpawnPos = spawnPosition.position + (shootingDirection * 0.5f);
 
-        GameObject arrow = Instantiate(arrowPrefab, safeSpawnPos, arrowRotation);
+        if (isDoubleShotUnlocked)
+        {
+            // Run the sequential burst using a Coroutine for the delay
+            StartCoroutine(BurstFireRoutine(safeSpawnPos, shootingDirection, force));
+        }
+        else
+        {
+            // Standard Single Shot
+            Quaternion arrowRotation = Quaternion.LookRotation(shootingDirection);
+            GameObject arrow = Instantiate(arrowPrefab, safeSpawnPos, arrowRotation);
+            ApplyArrowForce(arrow, shootingDirection, force);
+        }
+    }
 
-        Rigidbody rb = arrow.GetComponent<Rigidbody>();
+    // Coroutine handles the delayed second shot sequence seamlessly
+    private IEnumerator BurstFireRoutine(Vector3 safeSpawnPos, Vector3 shootingDirection, float force)
+    {
+        // 1. SPAWN FIRST ARROW IMMEDIATELY
+        Quaternion arrowRotation1 = Quaternion.LookRotation(shootingDirection);
+        GameObject arrow1 = Instantiate(arrowPrefab, safeSpawnPos, arrowRotation1);
+        ApplyArrowForce(arrow1, shootingDirection, force);
+
+        // 2. PAUSE THE CODE EXECUTION FOR THE BURST DELAY TIMER
+        yield return new WaitForSeconds(burstDelay);
+
+        // Re-calculate modern crosshair directions in case the player flicked their mouse during the delay
+        Vector3 freshDirection = CalculateDirection().normalized;
+        Vector3 freshSpawnPos = spawnPosition.position + (freshDirection * 0.5f);
+
+        // 3. SPAWN THE SECOND ARROW FOLLOWING THE DELAY
+        // Giving it a tiny vertical lift (2 degrees) so they don't cleanly override/clip each other mid-air
+        Vector3 angledDirection = Quaternion.Euler(-2f, 0f, 0f) * freshDirection;
+        Quaternion arrowRotation2 = Quaternion.LookRotation(angledDirection);
+
+        GameObject arrow2 = Instantiate(arrowPrefab, freshSpawnPos, arrowRotation2);
+        ApplyArrowForce(arrow2, angledDirection, force);
+    }
+
+    private void ApplyArrowForce(GameObject arrowInstance, Vector3 direction, float force)
+    {
+        Rigidbody rb = arrowInstance.GetComponent<Rigidbody>();
         if (rb != null)
         {
             rb.linearVelocity = Vector3.zero;
-            rb.AddForce(shootingDirection * force, ForceMode.Impulse);
+            rb.AddForce(direction * force, ForceMode.Impulse);
         }
     }
 
