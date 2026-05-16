@@ -71,7 +71,6 @@ public class BowController : MonoBehaviour
             else
             {
                 Debug.Log("No arrows left!");
-                // Optional: Play a "click" sound or show a "No Ammo" UI here
             }
         }
 

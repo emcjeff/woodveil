@@ -18,16 +18,21 @@ public class EnemyDrop : MonoBehaviour
     public void HandleDeath()
     {
         CalculateDrop();
-
         // Removed Destroy(gameObject) from here to let EnemyHealth handle it
     }
 
     private void CalculateDrop()
     {
+        if (lootTable == null || lootTable.Count == 0) return;
+
         float roll = Random.Range(0f, 100f);
 
         foreach (DropItem item in lootTable)
         {
+            // SAFETY FIX: If a prefab slot is blank in the inspector, skip it!
+            // Otherwise, Unity crashes the code here and the enemy stays standing forever.
+            if (item.itemPrefab == null) continue;
+
             if (roll <= item.dropChance)
             {
                 // Spawns the loot at the enemy's feet

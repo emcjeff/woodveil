@@ -1,9 +1,9 @@
-Shader "Unlit/URP-Normal-BookPage"
+Shader "Unlit/URP-BackPage-Only"
 {
     Properties
     {
-        _MainTex ("Page Texture", 2D) = "white" {}
-        [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull", Float) = 2 // Default to Back culling
+        _MainTex ("Back Page Texture", 2D) = "white" {}
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull", Float) = 1 // Default to Front culling
     }
     SubShader
     {
@@ -41,14 +41,18 @@ Shader "Unlit/URP-Normal-BookPage"
                 Varyings OUT;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
                 
-                // COMPLETELY NORMAL UV MAPPING (No flipping, no modifications!)
-                OUT.uv = IN.uv * _MainTex_ST.xy + _MainTex_ST.zw;
+                // Get standard tiling/offset
+                float2 customUV = IN.uv * _MainTex_ST.xy + _MainTex_ST.zw;
+                
+                // FLIP ONLY THE X-AXIS: This un-mirrors the texture when the page is rotated 180 degrees!
+                customUV.x = 1.0 - customUV.x;
+                
+                OUT.uv = customUV;
                 return OUT;
             }
 
             half4 frag(Varyings IN) : SV_Target
             {
-                // Return the texture exactly as it is drawn
                 return tex2D(_MainTex, IN.uv);
             }
             ENDHLSL

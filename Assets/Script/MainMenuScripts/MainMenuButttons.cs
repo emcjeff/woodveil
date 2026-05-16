@@ -21,10 +21,18 @@ public class MainMenu : MonoBehaviour
 
     void Awake()
     {
-        // 1. Setup Cursor for Menu
-        Time.timeScale = 1f;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        // --- HEADACHE-FREE CURSOR FIX ---
+        // Get the current scene name
+        string currentScene = SceneManager.GetActiveScene().name;
+
+        // If we are in the Main Menu OR the Game Over screen, free the cursor immediately!
+        if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName)
+        {
+            Time.timeScale = 1f;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        // --------------------------------
 
         // 2. Find the Canvas and its CanvasGroup
         GameObject canvasObj = GameObject.Find("Canvas");
@@ -45,8 +53,9 @@ public class MainMenu : MonoBehaviour
 
     void Update()
     {
-        // 3. Keep fighting for the cursor in the Build menu
-        if (SceneManager.GetActiveScene().name == mainMenuSceneName)
+        // 3. Keep fighting for the cursor in the Build menu / Game Over screen
+        string currentScene = SceneManager.GetActiveScene().name;
+        if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName)
         {
             if (Cursor.lockState != CursorLockMode.None)
             {

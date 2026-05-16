@@ -5,7 +5,7 @@ public class WeaponPickup : MonoBehaviour
     [Header("Item Names")]
     public string weaponName = "Bow";
     public string ammoName = "Arrow";
-    public int startingAmmo = 20;
+    public int startingAmmo = 40;
 
     [Header("Interaction Settings")]
     public bool playerInRange = false; // The safety gate
@@ -14,7 +14,10 @@ public class WeaponPickup : MonoBehaviour
 
     public void Interact()
     {
-        // Only allow interaction if we are actually standing in the trigger!
+        // --- DIAGNOSTIC LOG ---
+        Debug.LogWarning("Interact() was called on: " + gameObject.name);
+        // ----------------------
+
         if (isPickedUp || !playerInRange) return;
 
         if (InventorySystem.Instance != null)
@@ -28,12 +31,24 @@ public class WeaponPickup : MonoBehaviour
             EquipManager.Instance.EquipWeapon(weaponName);
         }
 
+        // --- SIGNAL MISSION SYSTEM FOR OBJECTIVE 2 ---
+        // Checks for either "Bow" or "BowUI" so the script is completely bulletproof!
+        if ((weaponName == "Bow" || weaponName == "BowUI") && BookManager.Instance != null)
+        {
+            BookManager.Instance.CompleteObjective(2);
+            Debug.Log("Success! Sent CompleteObjective(2) to BookManager.");
+        }
+        else if (BookManager.Instance == null)
+        {
+            Debug.LogError("WeaponPickup: BookManager.Instance is missing from the scene!");
+        }
+        // ---------------------------------------------
+
         isPickedUp = true;
         Debug.Log("Picked up " + weaponName + " and " + startingAmmo + " arrows!");
         Destroy(gameObject);
     }
 
-    // --- ADD THIS LOGIC ---
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))

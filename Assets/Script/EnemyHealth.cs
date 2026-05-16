@@ -81,6 +81,14 @@ public class EnemyHealth : MonoBehaviour
             GetComponent<NavMeshAgent>().enabled = false;
         }
 
+        // --- SIGNAL SLIME MISSION OVER TO BOOKMANAGER ---
+        // Checks if the enemy name contains "Slime" (e.g., Slime Green, SlimePrefab, Slime(Clone))
+        if (gameObject.name.Contains("Slime") && BookManager.Instance != null)
+        {
+            BookManager.Instance.RegisterSlimeKill();
+        }
+        // ------------------------------------------------
+
         // Start the timer to drop loot and then destroy the body
         StartCoroutine(DestroyObject());
     }

@@ -554,8 +554,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c190bd27a4667a4e92f118af12c350a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NewMonoBehaviourScript
-  mainMenuName: MainMenu
-  delaySeconds: 3
+  delay: 2.5
 --- !u!4 &470872382
 Transform:
   m_ObjectHideFlags: 0

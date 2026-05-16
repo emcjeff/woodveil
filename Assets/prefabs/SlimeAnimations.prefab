@@ -462,6 +462,7 @@ MonoBehaviour:
   type: 1
   playerInRange: 0
   ItemName: 'Slime '
+  pageIndex: 0
 --- !u!195 &1384886714724162689
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -527,10 +528,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   lootTable:
+  - itemPrefab: {fileID: 8555206067499702550, guid: 44ade84fdc1b78748863c2413c0759b3,
+      type: 3}
+    dropChance: 50
+  - itemPrefab: {fileID: 7278795672043744433, guid: d905396f6e82bfd49896fce0e6557d67,
+      type: 3}
+    dropChance: 100
   - itemPrefab: {fileID: 0}
     dropChance: 50
-  - itemPrefab: {fileID: 0}
-    dropChance: 100
 --- !u!114 &3306575057981305744
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -543,8 +548,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bdfcbc182c3803048b2b051045fb37a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDamage
-  baseDamage: 10
-  damageMultiplier: 1
+  damageAmount: 10
+  attackSpeed: 2
 --- !u!1 &6942114889229213680
 GameObject:
   m_ObjectHideFlags: 0

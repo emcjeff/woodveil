@@ -1,15 +1,39 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // Added for scene loading logic
+using UnityEngine.SceneManagement;
+using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class BookManager : MonoBehaviour
 {
     public static BookManager Instance { get; private set; }
 
+    [Header("UI Objects")]
+    [Tooltip("The actual main Book UI panel that opens when pressing E")]
     public GameObject bookUI;
+    [Tooltip("The 'Press E to Open Book' text/prompt object")]
     public GameObject BookPrompt;
 
-    public bool isBookOpen = false;
-    public bool hasBook = false;
+    [Header("One-Time Spawn Paper")]
+    [Tooltip("The temporary mission paper that shows up at spawn and vanishes forever when closed")]
+    [SerializeField] private GameObject introMissionPaper;
+
+    [Header("Mission Customization")]
+    [Tooltip("Type the exact names of your 5 Cross-Out Line GameObjects inside the book pages")]
+    [SerializeField] private List<string> crossOutLineNames = new List<string> { "Line1", "Line2", "Line3", "Line4", "Line5" };
+
+    [Header("Quest Trackers")]
+    [SerializeField] private int slimesRequired = 10;
+    private static int currentSlimeKills = 0; // Static so it survives player scene transitions/reloads
+
+    [HideInInspector] public bool isBookOpen = false;
+    [HideInInspector] public bool hasBook = false;
+
+    private List<GameObject> objectiveCrossOutLines = new List<GameObject>();
+    private bool isIntroPaperActive = false;
+
+    // Static array saves which objectives are finished across death/reloads during runtime
+    private static bool[] completedObjectives = new bool[5];
+    private static bool hasShownIntroPaper = false;
 
     private void Awake()
     {
@@ -20,12 +44,10 @@ public class BookManager : MonoBehaviour
         else
         {
             Instance = this;
-            // Ensure the BookManager travels between scenes
             DontDestroyOnLoad(gameObject);
         }
     }
 
-    // --- SCENE TRANSITION FIX ---
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -38,11 +60,13 @@ public class BookManager : MonoBehaviour
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // When entering the Cave, force the book to a closed state
-        // This fixes buttons becoming unresponsive due to "ghost" states
         CloseBook();
+
+        if (scene.name == "wodbeyl" && !hasShownIntroPaper)
+        {
+            Invoke("ShowIntroMissionPaper", 0.1f);
+        }
     }
-    // ----------------------------
 
     void Update()
     {
@@ -55,22 +79,81 @@ public class BookManager : MonoBehaviour
             BookPrompt.SetActive(false);
         }
 
-        if (Input.GetKeyDown(KeyCode.E) && hasBook)
+        if (Input.GetKeyDown(KeyCode.E) && hasBook && !isIntroPaperActive)
         {
             if (isBookOpen) CloseBook();
             else OpenBook();
         }
     }
 
+    // --- 1. THE ONE-TIME START PAPER LOGIC ---
+    public void ShowIntroMissionPaper()
+    {
+        if (introMissionPaper == null) return;
+
+        hasShownIntroPaper = true;
+        isIntroPaperActive = true;
+
+        bookUI.SetActive(false);
+        introMissionPaper.SetActive(true);
+
+        Button closeButton = introMissionPaper.GetComponentInChildren<Button>();
+        if (closeButton != null)
+        {
+            closeButton.onClick.RemoveAllListeners();
+            closeButton.onClick.AddListener(CloseIntroMissionPaper);
+        }
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        Time.timeScale = 0f;
+    }
+
+    public void CloseIntroMissionPaper()
+    {
+        if (introMissionPaper != null)
+        {
+            introMissionPaper.SetActive(false);
+        }
+
+        isIntroPaperActive = false;
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        Time.timeScale = 1f;
+    }
+
+
+    // --- 2. THE ACTUAL BOOK LAYOUT LOGIC ---
     public void CollectBook()
     {
         hasBook = true;
+        CompleteObjective(1);
+    }
+
+    // --- NEW: CALL THIS METHOD TO TRACK SLIME KILLS ---
+    public void RegisterSlimeKill()
+    {
+        // If it's already crossed out, don't do extra processing
+        if (completedObjectives[2]) return;
+
+        currentSlimeKills++;
+        Debug.Log($"Slime defeated! Progress: {currentSlimeKills}/{slimesRequired}");
+
+        if (currentSlimeKills >= slimesRequired)
+        {
+            CompleteObjective(3); // Objective 3 is Slime Hunt
+            Debug.Log("Quest Complete: 10 Slimes defeated!");
+        }
     }
 
     public void OpenBook()
     {
         bookUI.SetActive(true);
         isBookOpen = true;
+
+        FindAndRefreshLines();
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -83,11 +166,10 @@ public class BookManager : MonoBehaviour
 
     public void CloseBook()
     {
-        // Find the 'book' script on your UI
         book pageScript = bookUI.GetComponentInChildren<book>();
         if (pageScript != null)
         {
-            pageScript.ResetState(); // This stops the Coroutine and unlocks 'rotate'
+            pageScript.ResetState();
         }
 
         bookUI.SetActive(false);
@@ -99,6 +181,49 @@ public class BookManager : MonoBehaviour
         if (SelectionManager.Instance != null)
         {
             SelectionManager.Instance.EnableSelection();
+        }
+    }
+
+    public void CompleteObjective(int objectiveNumber)
+    {
+        int index = objectiveNumber - 1;
+        if (index >= 0 && index < completedObjectives.Length)
+        {
+            completedObjectives[index] = true;
+            FindAndRefreshLines();
+            Debug.Log($"Book Objective {objectiveNumber} crossed out!");
+        }
+    }
+
+    private void FindAndRefreshLines()
+    {
+        Transform[] allChildren = bookUI.GetComponentsInChildren<Transform>(true);
+        objectiveCrossOutLines.Clear();
+
+        Dictionary<string, GameObject> foundLines = new Dictionary<string, GameObject>();
+
+        foreach (Transform child in allChildren)
+        {
+            if (crossOutLineNames.Contains(child.name))
+            {
+                foundLines[child.name] = child.gameObject;
+            }
+        }
+
+        foreach (string lineName in crossOutLineNames)
+        {
+            if (foundLines.ContainsKey(lineName))
+            {
+                objectiveCrossOutLines.Add(foundLines[lineName]);
+            }
+        }
+
+        for (int i = 0; i < objectiveCrossOutLines.Count; i++)
+        {
+            if (objectiveCrossOutLines[i] != null)
+            {
+                objectiveCrossOutLines[i].SetActive(completedObjectives[i]);
+            }
         }
     }
 }
