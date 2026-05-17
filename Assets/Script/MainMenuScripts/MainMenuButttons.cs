@@ -13,6 +13,7 @@ public class MainMenu : MonoBehaviour
     public string mainMenuSceneName = "MainMenu";
     public string firstLevelName = "wodbeyl";
     public string gameOverSceneName = "GameOver";
+    public string gameWinSceneName = "Win"; // Updated strictly to "Win" as requested!
 
     public static bool isRetrying = false;
     public static bool isLongReturning = false;
@@ -21,41 +22,45 @@ public class MainMenu : MonoBehaviour
 
     void Awake()
     {
-        // --- HEADACHE-FREE CURSOR FIX ---
-        // Get the current scene name
         string currentScene = SceneManager.GetActiveScene().name;
 
-        // If we are in the Main Menu OR the Game Over screen, free the cursor immediately!
-        if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName)
+        // ONLY purge on GameOver or Win! Leave MainMenu alone
+        if (currentScene == gameOverSceneName || currentScene == gameWinSceneName)
+        {
+            Time.timeScale = 1f;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
+            PurgePersistentObjects();
+        }
+        else if (currentScene == mainMenuSceneName)
         {
             Time.timeScale = 1f;
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
-        // --------------------------------
 
-        // 2. Find the Canvas and its CanvasGroup
+        // Safe-find the gameplay Canvas layer if it exists locally
         GameObject canvasObj = GameObject.Find("Canvas");
         if (canvasObj != null)
         {
             gameplayCanvasGroup = canvasObj.GetComponent<CanvasGroup>();
-
-            // If it doesn't have a CanvasGroup yet, add one automatically!
             if (gameplayCanvasGroup == null)
             {
                 gameplayCanvasGroup = canvasObj.AddComponent<CanvasGroup>();
             }
 
-            // HIDE it for the menu without disabling the object
-            SetCanvasVisible(false);
+            if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName || currentScene == gameWinSceneName)
+            {
+                SetCanvasVisible(false);
+            }
         }
     }
 
     void Update()
     {
-        // 3. Keep fighting for the cursor in the Build menu / Game Over screen
         string currentScene = SceneManager.GetActiveScene().name;
-        if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName)
+        if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName || currentScene == gameWinSceneName)
         {
             if (Cursor.lockState != CursorLockMode.None)
             {
@@ -65,7 +70,29 @@ public class MainMenu : MonoBehaviour
         }
     }
 
-    // Helper function to show/hide UI smoothly
+    private void PurgePersistentObjects()
+    {
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            Destroy(playerObj);
+            Debug.Log("[System Clean] Persistent PLAYER destroyed for screen safety.");
+        }
+
+        GameObject fallbackPlayer = GameObject.Find("PLAYER");
+        if (fallbackPlayer != null) Destroy(fallbackPlayer);
+
+        GameObject gameplayCanvas = GameObject.Find("Canvas");
+        if (gameplayCanvas != null && gameplayCanvas.gameObject != this.gameObject)
+        {
+            if (gameplayCanvas.transform.parent == null)
+            {
+                Destroy(gameplayCanvas);
+                Debug.Log("[System Clean] Persistent gameplay HUD Canvas destroyed.");
+            }
+        }
+    }
+
     void SetCanvasVisible(bool visible)
     {
         if (gameplayCanvasGroup != null)
@@ -78,12 +105,14 @@ public class MainMenu : MonoBehaviour
 
     public void PlayGame()
     {
-        // SHOW the UI just before loading the game
         SetCanvasVisible(true);
-
         isRetrying = false;
         isLongReturning = false;
         Time.timeScale = 1f;
+
+        // Reset your intro state so it plays fresh from the menu buttons
+        StoryIntro.ResetIntroPlaystate();
+
         SceneManager.LoadScene(firstLevelName);
     }
 
@@ -103,11 +132,23 @@ public class MainMenu : MonoBehaviour
         SceneManager.LoadScene(gameOverSceneName);
     }
 
+    public void GoToWinScene()
+    {
+        Time.timeScale = 1f;
+        isRetrying = false;
+        isLongReturning = false;
+        SceneManager.LoadScene(gameWinSceneName); // Loads the "Win" scene cleanly
+    }
+
     public void RetryGame()
     {
         Time.timeScale = 1f;
         isRetrying = true;
         isLongReturning = false;
+
+        // Reset your intro state so it plays fresh when restarting after a game over
+        StoryIntro.ResetIntroPlaystate();
+
         SceneManager.LoadScene(mainMenuSceneName);
     }
 
@@ -117,13 +158,6 @@ public class MainMenu : MonoBehaviour
         Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-    }
-
-    private IEnumerator AutoLoadLevelSequence()
-    {
-        isRetrying = false;
-        yield return new WaitForSecondsRealtime(0.2f);
-        SceneManager.LoadScene(firstLevelName);
     }
 
     public void OpenOptions()

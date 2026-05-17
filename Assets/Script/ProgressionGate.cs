@@ -16,17 +16,17 @@ public class ProgressionGate : MonoBehaviour
 
     void Start()
     {
-        // Default target link to itself if left unassigned in editor slots
-        if (objectToGate == null)
+        // Default target link to itself if left unassigned in editor slots
+        if (objectToGate == null)
         {
             objectToGate = this.gameObject;
         }
 
-        // Check conditions instantly at startup
-        EvaluateGate();
+        // Check conditions instantly at startup
+        EvaluateGate();
 
-        // If page has not been recovered yet, schedule loop checks to listen for pickup updates
-        if (!isUnlocked)
+        // If page has not been recovered yet, schedule loop checks to listen for pickup updates
+        if (!isUnlocked)
         {
             InvokeRepeating(nameof(EvaluateGate), checkInterval, checkInterval);
         }
@@ -36,15 +36,15 @@ public class ProgressionGate : MonoBehaviour
     {
         if (BookManager.Instance == null) return;
 
-        // Query BookManager directly to see if the target page index reads TRUE
-        if (BookManager.Instance.IsPageUnlocked(requiredPageIndex))
+        // Query BookManager directly to see if the target page index reads TRUE
+        if (BookManager.Instance.IsPageUnlocked(requiredPageIndex))
         {
             UnlockTarget();
         }
         else
         {
-            // Lock the state if page is missing
-            if (objectToGate.activeSelf)
+            // Lock the state if page is missing
+            if (objectToGate.activeSelf)
             {
                 objectToGate.SetActive(false);
             }
@@ -55,11 +55,12 @@ public class ProgressionGate : MonoBehaviour
     {
         isUnlocked = true;
 
-        // Wake up your hidden enemy or spawner trigger
-        objectToGate.SetActive(true);
+        // Wake up your hidden enemy or spawner trigger
+        objectToGate.SetActive(true);
         Debug.Log($"[ProgressionGate] Target page index {requiredPageIndex} collected! Activating object: {objectToGate.name}");
 
-        // Cancel the loop entirely to maintain flawless frame rate performance
-        CancelInvoke(nameof(EvaluateGate));
+        // Cancel the loop entirely to maintain flawless frame rate performance
+        CancelInvoke(nameof(EvaluateGate));
     }
 }
+

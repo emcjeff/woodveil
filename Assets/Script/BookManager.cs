@@ -7,6 +7,9 @@ public class BookManager : MonoBehaviour
 {
     public static BookManager Instance { get; private set; }
 
+    [Header("Global Save Array State")]
+    public bool[] completedObjectives = new bool[10];
+
     [Header("UI Objects")]
     [Tooltip("The actual main Book UI panel that opens when pressing E")]
     public GameObject bookUI;
@@ -42,8 +45,7 @@ public class BookManager : MonoBehaviour
     private List<GameObject> objectiveCrossOutLines = new List<GameObject>();
     private bool isIntroPaperActive = false;
 
-    // Static array saves which objectives are finished across death/reloads during runtime (Size updated to 10)
-    private static bool[] completedObjectives = new bool[10];
+    // This is the golden variable that persists across scene loads!
     private static bool hasShownIntroPaper = false;
 
     private void Awake()
@@ -73,6 +75,7 @@ public class BookManager : MonoBehaviour
     {
         CloseBook();
 
+        // FIXED: Now safely uses the static variable check. If true, it skips this block completely when returning to wodbeyl.
         if (scene.name == "wodbeyl" && !hasShownIntroPaper)
         {
             Invoke("ShowIntroMissionPaper", 0.1f);
@@ -119,7 +122,7 @@ public class BookManager : MonoBehaviour
     {
         if (introMissionPaper == null) return;
 
-        hasShownIntroPaper = true;
+        hasShownIntroPaper = true; // Set to true instantly so returning to this scene won't rerun this function
         isIntroPaperActive = true;
 
         bookUI.SetActive(false);
@@ -152,7 +155,6 @@ public class BookManager : MonoBehaviour
         Time.timeScale = 1f;
     }
 
-
     // --- JOURNAL SYSTEM FUNCTIONS ---
     public void CollectBook()
     {
@@ -165,7 +167,6 @@ public class BookManager : MonoBehaviour
     {
         if (enableTestToggles) return;
 
-        // Handle Objective 5: Specific Mini-boss check (SlimeGreen)
         if (enemyName.Contains("SlimeGreen") && !completedObjectives[4])
         {
             CompleteObjective(5);
@@ -201,7 +202,7 @@ public class BookManager : MonoBehaviour
         }
     }
 
-    // --- NEW! PROGRESS TRACKER: SPIDER BOSS KILL (LINE 10) ---
+    // --- PROGRESS TRACKER: SPIDER BOSS KILL (LINE 10) ---
     public void RegisterSpiderBossKill()
     {
         if (enableTestToggles) return;
@@ -262,6 +263,16 @@ public class BookManager : MonoBehaviour
         }
     }
 
+    public bool IsObjectiveComplete(int objectiveLineNumber)
+    {
+        int targetIndex = objectiveLineNumber - 1;
+        if (completedObjectives != null && targetIndex >= 0 && targetIndex < completedObjectives.Length)
+        {
+            return completedObjectives[targetIndex];
+        }
+        return false;
+    }
+
     private void FindAndRefreshLines()
     {
         Transform[] allChildren = bookUI.GetComponentsInChildren<Transform>(true);
@@ -298,20 +309,15 @@ public class BookManager : MonoBehaviour
 
     private void CheckMasterRewardUnlock()
     {
-        bool allDone = true;
+        bool line7Done = completedObjectives[6];
+        bool line8Done = completedObjectives[7];
+        bool line9Done = completedObjectives[8];
 
-        for (int i = 0; i < completedObjectives.Length; i++)
-        {
-            if (!completedObjectives[i])
-            {
-                allDone = false;
-                break;
-            }
-        }
+        bool requirementsMet = line7Done && line8Done && line9Done;
 
         if (BowController.Instance != null)
         {
-            BowController.Instance.isDoubleShotUnlocked = allDone;
+            BowController.Instance.isDoubleShotUnlocked = requirementsMet;
         }
     }
 

@@ -763,7 +763,8 @@ GameObject:
   - component: {fileID: 136828562}
   - component: {fileID: 136828561}
   - component: {fileID: 136828560}
-  - component: {fileID: 136828559}
+  - component: {fileID: 136828564}
+  - component: {fileID: 136828565}
   m_Layer: 0
   m_Name: Finish
   m_TagString: Untagged
@@ -771,20 +772,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &136828559
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 136828558}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01d1dc5050f9d91468516db46e9d9279, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SceneLoader
-  targetSceneName: wodbeyl
-  destinationName: Arrival_FromCave
 --- !u!65 &136828560
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -804,7 +791,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Size: {x: 1.16, y: 1, z: 1.19}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &136828561
 MeshRenderer:
@@ -873,11 +860,59 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.049533255, z: -0, w: 0.99877256}
   m_LocalPosition: {x: -37.39, y: -3, z: 12.99}
-  m_LocalScale: {x: 25.306244, y: 25.306244, z: 25.306244}
-  m_ConstrainProportionsScale: 1
+  m_LocalScale: {x: 25.306244, y: 34.1, z: 25.306244}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -5.678, z: 0}
+--- !u!54 &136828564
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136828558}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!65 &136828565
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136828558}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.16, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &177871539
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2360,10 +2395,10 @@ MonoBehaviour:
   spawnPoint: {fileID: 542663442}
   enemyCount: 3
   scatterRadius: 5.91
-  spawnOnlyOnce: 1
+  spawnOnlyOnce: 0
   spawnEffect: {fileID: 0}
   bossGate: {fileID: 0}
-  spawnCooldown: 20
+  spawnCooldown: 40
 --- !u!1001 &569326670
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3591,12 +3626,12 @@ MonoBehaviour:
   enemyPrefab: {fileID: 9183770661008780414, guid: 2998b303e9f2a2443a2517eeb6eb237e,
     type: 3}
   spawnPoint: {fileID: 1742469806}
-  enemyCount: 4
+  enemyCount: 2
   scatterRadius: 32.4
   spawnOnlyOnce: 0
   spawnEffect: {fileID: 0}
   bossGate: {fileID: 1265875313}
-  spawnCooldown: 30
+  spawnCooldown: 20
 --- !u!65 &998425729
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5626,6 +5661,7 @@ GameObject:
   - component: {fileID: 1667464469}
   - component: {fileID: 1667464468}
   - component: {fileID: 1667464472}
+  - component: {fileID: 1667464473}
   m_Layer: 0
   m_Name: wodbeyl
   m_TagString: Untagged
@@ -5652,7 +5688,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Size: {x: 1, y: 1, z: 1.1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1667464469
 MeshRenderer:
@@ -5742,6 +5778,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SceneLoader
   targetSceneName: wodbeyl
   destinationName: Arrival_FromCave
+--- !u!65 &1667464473
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1667464467}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!4 &1742469806 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4535811484332546295, guid: 45d6673751cd95441bc7cac6a899a5a2,
@@ -6810,10 +6867,10 @@ MonoBehaviour:
   spawnPoint: {fileID: 2070306085}
   enemyCount: 2
   scatterRadius: 6.75
-  spawnOnlyOnce: 1
+  spawnOnlyOnce: 0
   spawnEffect: {fileID: 0}
   bossGate: {fileID: 0}
-  spawnCooldown: 20
+  spawnCooldown: 40
 --- !u!1001 &767931183187193318
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6822,6 +6879,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 903428954847373576, guid: 784297eaf48342d44b77976dc417ae9a,
+        type: 3}
+      propertyPath: enemyCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 903428954847373576, guid: 784297eaf48342d44b77976dc417ae9a,
+        type: 3}
+      propertyPath: spawnCooldown
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 903428954847373576, guid: 784297eaf48342d44b77976dc417ae9a,
+        type: 3}
+      propertyPath: spawnOnlyOnce
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1121803213172740189, guid: 784297eaf48342d44b77976dc417ae9a,
         type: 3}
       propertyPath: m_LocalPosition.x

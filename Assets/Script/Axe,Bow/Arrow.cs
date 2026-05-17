@@ -8,6 +8,10 @@ public class Arrow : MonoBehaviour
     private bool canStick = false;
     public float stickDepth = 0.2f;
 
+    [Header("Damage Profile")]
+    [SerializeField] private float baseDamage = 20f;
+    [SerializeField] private float upgradedBonusDamage = 20f;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -39,8 +43,9 @@ public class Arrow : MonoBehaviour
 
         if (enemy != null)
         {
-            // Deal damage to the enemy (assuming damage is 20, or add a public variable)
-            enemy.TakeDamage(20f);
+            // Determine final applied damage based on Line4, Line5, and Line6 completion
+            float finalDamage = CalculateArrowDamage();
+            enemy.TakeDamage(finalDamage);
 
             // Make the arrow disappear immediately
             Destroy(gameObject);
@@ -59,5 +64,25 @@ public class Arrow : MonoBehaviour
         ContactPoint contact = collision.GetContact(0);
         transform.position = contact.point + (transform.forward * stickDepth);
         transform.SetParent(collision.transform);
+    }
+
+    // --- DYNAMIC DAMAGE REWARD CHECKER ---
+    private float CalculateArrowDamage()
+    {
+        if (BookManager.Instance != null)
+        {
+            // Index 3 = Line4, Index 4 = Line5, Index 5 = Line6
+            bool line4Done = BookManager.Instance.IsObjectiveComplete(4);
+            bool line5Done = BookManager.Instance.IsObjectiveComplete(5);
+            bool line6Done = BookManager.Instance.IsObjectiveComplete(6);
+
+            if (line4Done && line5Done && line6Done)
+            {
+                Debug.Log($"[Arrow System] Upgraded Damage Triggered! Dealing {baseDamage + upgradedBonusDamage} damage.");
+                return baseDamage + upgradedBonusDamage; // Deals 40f total damage
+            }
+        }
+
+        return baseDamage; // Default back to 20f total damage
     }
 }

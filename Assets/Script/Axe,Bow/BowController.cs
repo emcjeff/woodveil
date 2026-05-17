@@ -23,7 +23,7 @@ public class BowController : MonoBehaviour
     public float shootCooldown = 0.5f;
 
     [Header("Master Quest Reward")]
-    [Tooltip("Managed automatically by the BookManager when all 5 quests are completed")]
+    [Tooltip("Managed automatically by the BookManager when Line 7, 8, and 9 are completed")]
     public bool isDoubleShotUnlocked = false;
 
     [Tooltip("The time delay (in seconds) between the first and second arrow during a double shot")]

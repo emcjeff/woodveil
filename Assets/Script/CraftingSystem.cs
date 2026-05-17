@@ -74,10 +74,7 @@ public class CraftingSystem : MonoBehaviour
 
     void CraftAnyItem(Blueprint blueprintToCraft)
     {
-        // 1. Determine how many items to give.
         int amountToGive = (blueprintToCraft.itemName == "ArrowUI") ? 10 : 1;
-
-        // 2. Add to inventory using the amountToGive variable
         InventorySystem.Instance.AddToInventory(blueprintToCraft.itemName, amountToGive);
 
         // --- CONNECT TO BOOKMANAGER FOR LINE 7 (CRAFT AXE) ---
@@ -87,7 +84,6 @@ public class CraftingSystem : MonoBehaviour
             Debug.Log("Quest Complete: Crafted a primitive Axe!");
         }
 
-        // 3. Remove the requirements from the inventory
         if (blueprintToCraft.numOfRequirements == 1)
         {
             InventorySystem.Instance.RemoveItem(blueprintToCraft.Req1, blueprintToCraft.Req1amount);
@@ -98,23 +94,42 @@ public class CraftingSystem : MonoBehaviour
             InventorySystem.Instance.RemoveItem(blueprintToCraft.Req2, blueprintToCraft.Req2amount);
         }
 
-        // 4. Refresh everything
         InventorySystem.Instance.ReCalculateList();
         RefreshNeededItems();
     }
 
     void Update()
     {
-        // Safe check to avoid null reference crashes if BookManager isn't spawned yet
         bool isBookOpen = (BookManager.Instance != null) && BookManager.Instance.isBookOpen;
 
         if (Input.GetKeyDown(KeyCode.C) && !isBookOpen)
         {
-            if (!isOpen) OpenCrafting();
-            else CloseCrafting();
+            // --- SECURITY LOCK: CHECK FOR LINE 1, LINE 2, AND LINE 3 COMPLETIONS ---
+            if (CheckQuestRequirementsPassed())
+            {
+                if (!isOpen) OpenCrafting();
+                else CloseCrafting();
+            }
+            else
+            {
+                Debug.LogWarning("[Crafting System] Denied! You must cross out Line 1, Line 2, and Line 3 in your Logbook first.");
+            }
         }
 
         if (isOpen) RefreshNeededItems();
+    }
+
+    // --- CHECK PROGRESSION FOR LOCKOUT ---
+    private bool CheckQuestRequirementsPassed()
+    {
+        if (BookManager.Instance == null) return false;
+
+        // Pull status from safety helper method
+        bool line1Completed = BookManager.Instance.IsObjectiveComplete(1);
+        bool line2Completed = BookManager.Instance.IsObjectiveComplete(2);
+        bool line3Completed = BookManager.Instance.IsObjectiveComplete(3);
+
+        return line1Completed && line2Completed && line3Completed;
     }
 
     private void OpenCrafting()
