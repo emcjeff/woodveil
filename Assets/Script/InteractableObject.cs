@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class InteractableObject : MonoBehaviour
 {
@@ -49,17 +49,17 @@ public class InteractableObject : MonoBehaviour
             }
         }
 
-        // 3. SPECIAL LOGIC: The Headlamp (Changed from helmet!)
+        // 3. SPECIAL LOGIC: The Headlamp
         if (ItemName.ToLower() == "headlamp")
         {
             if (FlashlightController.Instance != null)
             {
                 FlashlightController.Instance.PickUpHelmet(); // Keeps your old flashlight system hook working
 
-                // Cross out Objective 5 in your Book!
+                // ◄ UPDATED TO OBJECTIVE 6: Crosses out Line6 for finding the Headlamp!
                 if (BookManager.Instance != null)
                 {
-                    BookManager.Instance.CompleteObjective(5);
+                    BookManager.Instance.CompleteObjective(6);
                 }
 
                 Destroy(gameObject);

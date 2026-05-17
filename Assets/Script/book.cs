@@ -4,28 +4,34 @@ using UnityEngine;
 
 public class book : MonoBehaviour
 {
-    [SerializeField] float pageSpeed = 1.5f;
-    [SerializeField] List<Transform> pages;
+    [Header("Book Settings")]
+    [SerializeField] private float pageSpeed = 1.5f;
+    [SerializeField] private List<Transform> pages;
 
-    // This list keeps track of which pages the player has found
+    [Header("Progression Status")]
+    [Tooltip("Match this size to your total page count. Set true for pages the player starts with, false for pages they must find.")]
     public List<bool> unlockedPages;
 
-    int index = -1;
-    bool rotate = false;
-    [SerializeField] GameObject backButton;
-    [SerializeField] GameObject forwardButton;
+    [Header("Navigation Buttons")]
+    [SerializeField] private GameObject backButton;
+    [SerializeField] private GameObject forwardButton;
+
+    private int index = -1;
+    private bool rotate = false;
 
     private void Start()
     {
-        // Initialize the unlocked list if it's empty
-        if (unlockedPages.Count == 0)
+        // SAFETY: If the list was left completely unassigned, initialize it dynamically
+        if (unlockedPages == null || unlockedPages.Count == 0)
         {
+            unlockedPages = new List<bool>();
             for (int i = 0; i < pages.Count; i++)
             {
-                // Set first page (index 0) to true, others to false
+                // Only the very first page sheet is active by default
                 unlockedPages.Add(i == 0);
             }
         }
+
         InitialState();
     }
 
@@ -36,12 +42,12 @@ public class book : MonoBehaviour
             if (pages[i] != null)
             {
                 pages[i].transform.rotation = Quaternion.identity;
-                // Only show the page if it is unlocked
+                // Display the page if it is officially unlocked
                 pages[i].gameObject.SetActive(unlockedPages[i]);
             }
         }
 
-        // Stacking logic only for unlocked pages
+        // Stacking order priority logic for active pages
         for (int i = pages.Count - 1; i >= 0; i--)
         {
             if (pages[i] != null && unlockedPages[i])
@@ -51,21 +57,17 @@ public class book : MonoBehaviour
         index = -1;
         if (backButton != null) backButton.SetActive(false);
 
-        // Forward button only shows if the NEXT page is unlocked
         CheckForwardButton();
     }
 
-    // Function to call when you pick up a page drop
     public void UnlockPage(int pageIndex)
     {
         if (pageIndex >= 0 && pageIndex < unlockedPages.Count)
         {
             unlockedPages[pageIndex] = true;
+            Debug.Log($"[Book System] Page Index {pageIndex} has been set to TRUE (Unlocked!)");
 
-            // Debug here to make sure this code is actually running!
-            Debug.Log("Page " + pageIndex + " is now set to TRUE");
-
-            // Refresh the objects
+            // Refresh the pages instantly
             InitialState();
         }
     }
@@ -75,7 +77,6 @@ public class book : MonoBehaviour
         if (forwardButton == null) return;
 
         int nextIndex = index + 1;
-        // Show forward button only if the next page exists AND is unlocked
         if (nextIndex < pages.Count && unlockedPages[nextIndex])
         {
             forwardButton.SetActive(true);
@@ -114,7 +115,7 @@ public class book : MonoBehaviour
         StartCoroutine(Rotate(angle, false));
     }
 
-    IEnumerator Rotate(float angle, bool forward)
+    private IEnumerator Rotate(float angle, bool forward)
     {
         float value = 0f;
         while (true)

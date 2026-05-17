@@ -14,11 +14,19 @@ public class EnemySpawner : MonoBehaviour
     public bool spawnOnlyOnce = true;
     public GameObject spawnEffect;
 
+    [Header("Boss Gate Arena Settings")]
+    [Tooltip("The physical wall/barrier GameObject that locks the player inside the arena")]
+    public GameObject bossGate;
+
     [Tooltip("Time delay (in seconds) between wave spawns when 'Spawn Only Once' is unchecked")]
     [SerializeField] private float spawnCooldown = 20f;
 
     private bool hasSpawned = false;
     private bool isSpawnCooldownActive = false; // Prevents overlapping spawn timers
+
+    // Tracks all currently alive enemies spawned by this specific component
+    private List<GameObject> aliveEnemies = new List<GameObject>();
+    private bool trackingEnemies = false;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -63,6 +71,14 @@ public class EnemySpawner : MonoBehaviour
         }
 
         hasSpawned = true;
+        aliveEnemies.Clear();
+
+        // 1. RAISE THE BOSS GATE HOOHOOHO! Lock the player in!
+        if (bossGate != null)
+        {
+            bossGate.SetActive(true);
+            Debug.Log("[Arena] Boss Gate Activated! Player is trapped!");
+        }
 
         for (int i = 0; i < enemyCount; i++)
         {
@@ -80,7 +96,17 @@ public class EnemySpawner : MonoBehaviour
             Quaternion rot = spawnPoint != null ? spawnPoint.rotation : transform.rotation;
 
             // Create the enemy
-            Instantiate(enemyPrefab, finalSpawnPos, rot);
+            GameObject newEnemy = Instantiate(enemyPrefab, finalSpawnPos, rot);
+
+            // Add them to our tracking list so we know when they die
+            aliveEnemies.Add(newEnemy);
+
+            // NAVMESH SAFETY CHECK
+            UnityEngine.AI.NavMeshAgent agent = newEnemy.GetComponent<UnityEngine.AI.NavMeshAgent>();
+            if (agent != null)
+            {
+                agent.Warp(finalSpawnPos);
+            }
 
             // Create visual effect
             if (spawnEffect != null)
@@ -89,11 +115,42 @@ public class EnemySpawner : MonoBehaviour
             }
         }
 
+        // Start tracking our list of alive monsters
+        trackingEnemies = true;
+
         // Clean up the collider component completely if it's a one-time fight trigger
         if (spawnOnlyOnce)
         {
             Collider myCollider = GetComponent<Collider>();
             if (myCollider != null) myCollider.enabled = false;
+        }
+    }
+
+    private void Update()
+    {
+        // Only run checking calculations if we actively have monsters to watch
+        if (trackingEnemies)
+        {
+            // Clean up missing/destroyed enemy null references out of the collection array
+            for (int i = aliveEnemies.Count - 1; i >= 0; i--)
+            {
+                if (aliveEnemies[i] == null)
+                {
+                    aliveEnemies.RemoveAt(i);
+                }
+            }
+
+            // 2. LOWER THE BOSS GATE! If the count drops back down to zero, open the layout back up!
+            if (aliveEnemies.Count == 0)
+            {
+                trackingEnemies = false; // Turn off monitoring loop updates
+
+                if (bossGate != null)
+                {
+                    bossGate.SetActive(false);
+                    Debug.Log("[Arena] All enemies clear! Boss Gate opened.");
+                }
+            }
         }
     }
 

@@ -18,21 +18,23 @@ public class BookManager : MonoBehaviour
     [SerializeField] private GameObject introMissionPaper;
 
     [Header("Mission Customization")]
-    [Tooltip("Type the exact names of your 5 Cross-Out Line GameObjects inside the book pages")]
-    [SerializeField] private List<string> crossOutLineNames = new List<string> { "Line1", "Line2", "Line3", "Line4", "Line5" };
+    [Tooltip("Type the exact names of your 10 Cross-Out Line GameObjects inside the book pages")]
+    [SerializeField] private List<string> crossOutLineNames = new List<string> { "Line1", "Line2", "Line3", "Line4", "Line5", "Line6", "Line7", "Line8", "Line9", "Line10" };
 
-    [Header("Quest Trackers")]
-    [SerializeField] private int slimesRequired = 10;
-    private static int currentSlimeKills = 0; // Static so it survives player scene transitions/reloads
+    [Header("Quest Trackers (Slimes)")]
+    [SerializeField] private int slimeTier1Required = 3;  // For Objective 3
+    [SerializeField] private int slimeTier2Required = 10; // For Objective 4
+    private static int currentSlimeKills = 0;
 
-    [Tooltip("How many arrows the player must actively hold in their inventory for Objective 4")]
-    [SerializeField] private int arrowsRequired = 100;
+    [Header("Quest Trackers (Spiders)")]
+    [SerializeField] private int spiderRequiredKills = 10; // For Objective 9
+    private static int currentSpiderKills = 0;
 
     [Header("Editor Testing Toggles")]
     [Tooltip("Check this to manually override objectives using the array below for testing weapons/rewards!")]
     [SerializeField] private bool enableTestToggles = false;
-    [Tooltip("Elements 0-4 correspond to Objectives 1-5. Check them to force complete them in real-time.")]
-    [SerializeField] private bool[] testObjectivesState = new bool[5];
+    [Tooltip("Elements 0-9 correspond to Objectives 1-10. Check them to force complete them in real-time.")]
+    [SerializeField] private bool[] testObjectivesState = new bool[10];
 
     [HideInInspector] public bool isBookOpen = false;
     [HideInInspector] public bool hasBook = false;
@@ -40,8 +42,8 @@ public class BookManager : MonoBehaviour
     private List<GameObject> objectiveCrossOutLines = new List<GameObject>();
     private bool isIntroPaperActive = false;
 
-    // Static array saves which objectives are finished across death/reloads during runtime
-    private static bool[] completedObjectives = new bool[5];
+    // Static array saves which objectives are finished across death/reloads during runtime (Size updated to 10)
+    private static bool[] completedObjectives = new bool[10];
     private static bool hasShownIntroPaper = false;
 
     private void Awake()
@@ -75,6 +77,13 @@ public class BookManager : MonoBehaviour
         {
             Invoke("ShowIntroMissionPaper", 0.1f);
         }
+
+        // --- LINE 8 COMPLETED: ENTER CAVE DETECTED ---
+        if (scene.name == "Cave")
+        {
+            CompleteObjective(8); // Instantly crosses out Line8 upon entering the Cave scene!
+            Debug.Log("Quest Complete: Entered the spooky Cave!");
+        }
     }
 
     void Update()
@@ -105,7 +114,7 @@ public class BookManager : MonoBehaviour
         }
     }
 
-    // --- 1. THE ONE-TIME START PAPER LOGIC ---
+    // --- ONE-TIME START PAPER LOGIC ---
     public void ShowIntroMissionPaper()
     {
         if (introMissionPaper == null) return;
@@ -144,54 +153,68 @@ public class BookManager : MonoBehaviour
     }
 
 
-    // --- 2. THE ACTUAL BOOK LAYOUT LOGIC ---
+    // --- JOURNAL SYSTEM FUNCTIONS ---
     public void CollectBook()
     {
         hasBook = true;
         CompleteObjective(1);
     }
 
-    // --- TRACK SLIME KILLS (Event-driven) ---
-    public void RegisterSlimeKill()
+    // --- PROGRESS TRACKER: SLIME KILLS ---
+    public void RegisterSlimeKill(string enemyName)
     {
-        if (enableTestToggles) return; // Skip normal progression calculations if testing
-        if (completedObjectives[2]) return;
+        if (enableTestToggles) return;
+
+        // Handle Objective 5: Specific Mini-boss check (SlimeGreen)
+        if (enemyName.Contains("SlimeGreen") && !completedObjectives[4])
+        {
+            CompleteObjective(5);
+            Debug.Log("Quest Complete: SlimeGreen mini-boss defeated!");
+        }
 
         currentSlimeKills++;
-        Debug.Log($"Slime defeated! Progress: {currentSlimeKills}/{slimesRequired}");
+        Debug.Log($"Slime defeated ({enemyName})! Total Slime Progress: {currentSlimeKills}");
 
-        if (currentSlimeKills >= slimesRequired)
+        if (currentSlimeKills >= slimeTier1Required && !completedObjectives[2])
         {
             CompleteObjective(3);
-            Debug.Log("Quest Complete: 10 Slimes defeated!");
+        }
+
+        if (currentSlimeKills >= slimeTier2Required && !completedObjectives[3])
+        {
+            CompleteObjective(4);
         }
     }
 
-    // --- DYNAMIC INVENTORY CHECK FOR ARROWS ---
-    private void CheckInventoryObjectives()
+    // --- PROGRESS TRACKER: SPIDER KILLS (LINE 9) ---
+    public void RegisterSpiderKill(string enemyName)
     {
-        if (enableTestToggles) return; // Skip inventory calculations if testing via inspector
+        if (enableTestToggles) return;
 
-        if (InventorySystem.Instance != null)
+        currentSpiderKills++;
+        Debug.Log($"Spider defeated ({enemyName})! Total Spider Progress: {currentSpiderKills}/{spiderRequiredKills}");
+
+        if (currentSpiderKills >= spiderRequiredKills && !completedObjectives[8])
         {
-            int currentArrowsInInventory = InventorySystem.Instance.GetTotalItemCount("ArrowUI");
-            Debug.Log($"Checking book quest: Holding {currentArrowsInInventory}/{arrowsRequired} arrows.");
+            CompleteObjective(9);
+            Debug.Log($"Quest Complete: Cleared out {spiderRequiredKills} Spiders!");
+        }
+    }
 
-            if (currentArrowsInInventory >= arrowsRequired)
-            {
-                completedObjectives[3] = true;
-            }
-            else
-            {
-                completedObjectives[3] = false;
-            }
+    // --- NEW! PROGRESS TRACKER: SPIDER BOSS KILL (LINE 10) ---
+    public void RegisterSpiderBossKill()
+    {
+        if (enableTestToggles) return;
+
+        if (!completedObjectives[9])
+        {
+            CompleteObjective(10); // Instantly crosses out Line10!
+            Debug.Log("Quest Complete: The Mythic Spider Boss has been vanquished!");
         }
     }
 
     public void OpenBook()
     {
-        CheckInventoryObjectives();
-
         bookUI.SetActive(true);
         isBookOpen = true;
 
@@ -228,7 +251,7 @@ public class BookManager : MonoBehaviour
 
     public void CompleteObjective(int objectiveNumber)
     {
-        if (enableTestToggles) return; // Ignore standard execution signals during test loops
+        if (enableTestToggles) return;
 
         int index = objectiveNumber - 1;
         if (index >= 0 && index < completedObjectives.Length)
@@ -270,7 +293,6 @@ public class BookManager : MonoBehaviour
             }
         }
 
-        // Run checking framework to decide if Bow Controller gains the burst buff
         CheckMasterRewardUnlock();
     }
 
@@ -289,8 +311,22 @@ public class BookManager : MonoBehaviour
 
         if (BowController.Instance != null)
         {
-            // Connect directly to the bow toggle flag dynamically
             BowController.Instance.isDoubleShotUnlocked = allDone;
         }
+    }
+
+    public bool IsPageUnlocked(int pageIndex)
+    {
+        if (bookUI == null) return false;
+
+        book pageScript = bookUI.GetComponentInChildren<book>(true);
+        if (pageScript != null && pageScript.unlockedPages != null)
+        {
+            if (pageIndex >= 0 && pageIndex < pageScript.unlockedPages.Count)
+            {
+                return pageScript.unlockedPages[pageIndex];
+            }
+        }
+        return false;
     }
 }

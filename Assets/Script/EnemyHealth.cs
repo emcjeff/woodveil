@@ -81,13 +81,28 @@ public class EnemyHealth : MonoBehaviour
             GetComponent<NavMeshAgent>().enabled = false;
         }
 
-        // --- SIGNAL SLIME MISSION OVER TO BOOKMANAGER ---
-        // Checks if the enemy name contains "Slime" (e.g., Slime Green, SlimePrefab, Slime(Clone))
-        if (gameObject.name.Contains("Slime") && BookManager.Instance != null)
+        // --- SIGNAL ENEMY KILLS TO THE BOOKMANAGER ---
+
+        if (BookManager.Instance != null)
         {
-            BookManager.Instance.RegisterSlimeKill();
+            // 1. Check for Spider Boss (Explicit validation check goes first!)
+            if (gameObject.name.Contains("SpiderBoss") || gameObject.name.Contains("Spider Boss"))
+            {
+                BookManager.Instance.RegisterSpiderBossKill();
+            }
+            // 2. Check for regular Spiders (Only tracks if it's not the ultimate boss)
+            else if (gameObject.name.Contains("Spider"))
+            {
+                BookManager.Instance.RegisterSpiderKill(gameObject.name);
+            }
+            // 3. Check for Slimes
+            else if (gameObject.name.Contains("Slime"))
+            {
+                BookManager.Instance.RegisterSlimeKill(gameObject.name);
+            }
         }
-        // ------------------------------------------------
+
+        // ------------------------------------------------------
 
         // Start the timer to drop loot and then destroy the body
         StartCoroutine(DestroyObject());

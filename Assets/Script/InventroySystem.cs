@@ -17,17 +17,11 @@ public class InventorySystem : MonoBehaviour
 
     private void Awake()
     {
-        // PERSISTENCE LOGIC:
-        // If an instance already exists, destroy this new one.
-        // Otherwise, make this one the permanent instance.
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
+        if (Instance != null && Instance != this) Destroy(gameObject);
         else
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // Keeps your items across scenes!
+            DontDestroyOnLoad(gameObject);
         }
     }
 
@@ -36,12 +30,7 @@ public class InventorySystem : MonoBehaviour
         isOpen = false;
         PopulateSlotList();
 
-        // Ensure UI is hidden when starting/switching scenes
-        if (inventoryScreenUI != null)
-        {
-            inventoryScreenUI.SetActive(false);
-        }
-
+        if (inventoryScreenUI != null) inventoryScreenUI.SetActive(false);
         Cursor.visible = false;
     }
 
@@ -50,16 +39,12 @@ public class InventorySystem : MonoBehaviour
         slotList.Clear();
         foreach (Transform child in inventoryScreenUI.transform)
         {
-            if (child.CompareTag("Slot"))
-            {
-                slotList.Add(child.gameObject);
-            }
+            if (child.CompareTag("Slot")) slotList.Add(child.gameObject);
         }
     }
 
     void Update()
     {
-        // Check if BookManager exists before checking isBookOpen to avoid errors
         bool bookOpen = (BookManager.Instance != null && BookManager.Instance.isBookOpen);
 
         if (Input.GetKeyDown(KeyCode.I) && !bookOpen)
@@ -155,6 +140,7 @@ public class InventorySystem : MonoBehaviour
         }
         return true;
     }
+
     public int GetTotalItemCount(string targetItemName)
     {
         int total = 0;

@@ -75,11 +75,17 @@ public class CraftingSystem : MonoBehaviour
     void CraftAnyItem(Blueprint blueprintToCraft)
     {
         // 1. Determine how many items to give.
-        // If it's ArrowUI, give 10. Otherwise, give 1.
         int amountToGive = (blueprintToCraft.itemName == "ArrowUI") ? 10 : 1;
 
         // 2. Add to inventory using the amountToGive variable
         InventorySystem.Instance.AddToInventory(blueprintToCraft.itemName, amountToGive);
+
+        // --- CONNECT TO BOOKMANAGER FOR LINE 7 (CRAFT AXE) ---
+        if (blueprintToCraft.itemName == "Axe" && BookManager.Instance != null)
+        {
+            BookManager.Instance.CompleteObjective(7); // Triggers Line 7 Cross-out!
+            Debug.Log("Quest Complete: Crafted a primitive Axe!");
+        }
 
         // 3. Remove the requirements from the inventory
         if (blueprintToCraft.numOfRequirements == 1)
@@ -99,7 +105,10 @@ public class CraftingSystem : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.C) && !BookManager.Instance.isBookOpen)
+        // Safe check to avoid null reference crashes if BookManager isn't spawned yet
+        bool isBookOpen = (BookManager.Instance != null) && BookManager.Instance.isBookOpen;
+
+        if (Input.GetKeyDown(KeyCode.C) && !isBookOpen)
         {
             if (!isOpen) OpenCrafting();
             else CloseCrafting();
