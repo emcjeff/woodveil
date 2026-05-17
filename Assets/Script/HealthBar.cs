@@ -1,31 +1,53 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
+using UnityEngine.SceneManagement;
 
-public class HealthBar : MonoBehaviour
+public class PlayerHealth : MonoBehaviour
 {
-        
-    public TMP_Text healthCounter;
-
-    public GameObject PlayerState;
-
-    private float currentHealth, maxHealth;
-    private Slider slider;
+    public int maxHealth = 100;
+    public int currentHealth;
+    public Slider healthSlider; // Drag your slider here
 
     void Awake()
     {
-        slider = GetComponent<Slider>();
+        // Ensure health is full when the object is first created
+        currentHealth = maxHealth;
     }
 
-    
-    void Update()
+    void OnEnable()
     {
-        currentHealth = PlayerState.GetComponent<PlayerState>().currentHealth;
-        maxHealth = PlayerState.GetComponent<PlayerState>().maxHealth;
-    
-        float fillValue = currentHealth / maxHealth; //0 - 1
-        slider.value = fillValue;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
 
-        healthCounter.text = currentHealth + "/" + maxHealth; 
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // When we enter a new scene, make sure the slider is updated
+        UpdateHealthUI();
+    }
+
+    public void TakeDamage(int damage)
+    {
+        currentHealth -= damage;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        UpdateHealthUI();
+
+        if (currentHealth <= 0)
+        {
+            // Handle Death logic here
+        }
+    }
+
+    void UpdateHealthUI()
+    {
+        if (healthSlider != null)
+        {
+            healthSlider.maxValue = maxHealth;
+            healthSlider.value = currentHealth;
+        }
     }
 }

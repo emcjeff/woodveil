@@ -2,70 +2,83 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
-public class DragDrop : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDragHandler
+public class DragDrop : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-
-    //[SerializeField] private Canvas canvas;
     private RectTransform rectTransform;
     private CanvasGroup canvasGroup;
+    private Canvas canvas;
 
     public static GameObject itemBeingDragged;
-    Vector3 startPosition;
-    Transform startParent;
-
-
+    private Vector3 startPosition;
+    private Transform startParent;
 
     private void Awake()
     {
-
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
 
-    }
+        // 1. Try to find canvas in parents
+        canvas = GetComponentInParent<Canvas>();
 
+        // 2. If not found (item might be spawned outside), find the main one in the scene
+        if (canvas == null)
+        {
+            canvas = GameObject.FindFirstObjectByType<Canvas>();
+        }
+    }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        if (canvas == null)
+        {
+            Debug.LogError("DragDrop: No Canvas found in the scene!");
+            return;
+        }
 
         Debug.Log("OnBeginDrag");
-        canvasGroup.alpha = .6f;
-        //So the ray cast will ignore the item itself.
+        canvasGroup.alpha = 0.6f;
+
+        // This allows the raycast to hit the Slot behind the item
         canvasGroup.blocksRaycasts = false;
+
         startPosition = transform.position;
         startParent = transform.parent;
-        transform.SetParent(transform.root);
-        itemBeingDragged = gameObject;
 
+        // Move to canvas level so it draws on top of all other UI
+        transform.SetParent(canvas.transform);
+        itemBeingDragged = gameObject;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        //So the item will move with our mouse (at same speed)  and so it will be consistant if the canvas has a different scale (other then 1);
-        rectTransform.anchoredPosition += eventData.delta; // canvas.scaleFactor;
-        //galing
+        if (canvas == null) return;
+
+        // Moves the item 1:1 with the mouse by accounting for UI Scale
+        rectTransform.anchoredPosition += eventData.delta / canvas.scaleFactor;
     }
-
-
 
     public void OnEndDrag(PointerEventData eventData)
     {
-
         itemBeingDragged = null;
-
-        if (transform.parent == startParent || transform.parent == transform.root)
-        {
-            transform.position = startPosition;
-            transform.SetParent(startParent);
-
-        }
-
-        Debug.Log("OnEndDrag");
         canvasGroup.alpha = 1f;
         canvasGroup.blocksRaycasts = true;
+
+        // Safety check to prevent the NullReferenceException on line 53
+        if (canvas == null) return;
+
+        // Logic: If the item is still a child of the Canvas, it wasn't dropped in a Slot
+        if (transform.parent == canvas.transform)
+        {
+            transform.SetParent(startParent);
+            transform.position = startPosition;
+            Debug.Log("Returned to start");
+        }
+        else
+        {
+            // If the Slot script (OnDrop) changed the parent, snap it to the center
+            rectTransform.anchoredPosition = Vector2.zero;
+            Debug.Log("Snapped to new slot");
+        }
     }
-
-
-
 }

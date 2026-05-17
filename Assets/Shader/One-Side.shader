@@ -1,9 +1,9 @@
-Shader "Unlit/URP-OneSide-Book"
+Shader "Unlit/URP-Normal-BookPage"
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
-        [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull", Float) = 0
+        _MainTex ("Page Texture", 2D) = "white" {}
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull", Float) = 2 // Default to Back culling
     }
     SubShader
     {
@@ -40,12 +40,15 @@ Shader "Unlit/URP-OneSide-Book"
             {
                 Varyings OUT;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
+                
+                // COMPLETELY NORMAL UV MAPPING (No flipping, no modifications!)
                 OUT.uv = IN.uv * _MainTex_ST.xy + _MainTex_ST.zw;
                 return OUT;
             }
 
             half4 frag(Varyings IN) : SV_Target
             {
+                // Return the texture exactly as it is drawn
                 return tex2D(_MainTex, IN.uv);
             }
             ENDHLSL

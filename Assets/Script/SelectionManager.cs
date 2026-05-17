@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -8,16 +6,17 @@ public class SelectionManager : MonoBehaviour
 {
     public static SelectionManager Instance { get; private set; }
 
-    public bool onTarget;
-    public GameObject selectedObject;
-
+    [Header("UI References")]
     public GameObject Interaction_Info_UI;
-    TextMeshProUGUI interaction_text;
-
     public Image centerDotImage;
     public Image handIcon;
+    private TextMeshProUGUI interaction_text;
 
-    public float damage = 20f; // Damage for attacks
+    [Header("Combat Settings")]
+    public float damage = 20f;
+
+    [HideInInspector] public bool onTarget;
+    [HideInInspector] public GameObject selectedObject;
 
     private void Awake()
     {
@@ -28,81 +27,54 @@ public class SelectionManager : MonoBehaviour
         else
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
     }
 
     void Start()
     {
-        onTarget = false;
-
         if (Interaction_Info_UI != null)
-        {
-            interaction_text = Interaction_Info_UI.GetComponent<TextMeshProUGUI>();
-        }
-        else
-        {
-            Debug.LogError("Interaction_Info_UI is NOT assigned!");
-        }
+            interaction_text = Interaction_Info_UI.GetComponentInChildren<TextMeshProUGUI>();
+
+        ResetSelectionUI();
     }
 
     void Update()
     {
-        // 1. HANDLE SELECTION (RAYCAST)
+        if (Camera.main == null) return;
+
+        // Create Ray from center of screen
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit))
+        if (Physics.Raycast(ray, out hit, 5f)) // Added 5f reach distance
         {
-            var selectionTransform = hit.transform;
+            Transform selectionTransform = hit.transform;
             InteractableObject interactable = selectionTransform.GetComponent<InteractableObject>();
+            WeaponPickup weaponPickup = selectionTransform.GetComponent<WeaponPickup>();
+            EnemyHealth enemy = selectionTransform.GetComponent<EnemyHealth>();
 
-            if (interactable && interactable.playerInRange)
+            // 1. CHECK FOR INTERACTABLES (Items/Weapons)
+            if ((interactable && interactable.playerInRange) || (weaponPickup && weaponPickup.playerInRange))
             {
                 onTarget = true;
-                selectedObject = interactable.gameObject;
-                interaction_text.text = interactable.GetItemName();
-                Interaction_Info_UI.SetActive(true);
+                selectedObject = selectionTransform.gameObject;
+                UpdateUI(interactable, weaponPickup);
 
-                if (interactable.CompareTag("pickable"))
-                {
-                    centerDotImage.gameObject.SetActive(false);
-                    handIcon.gameObject.SetActive(true);
-                }
-                else
-                {
-                    handIcon.gameObject.SetActive(false);
-                    centerDotImage.gameObject.SetActive(true);
-                }
-
-                // 2. HANDLE INTERACTION (PICKUP)
                 if (Input.GetMouseButtonDown(0))
                 {
-                    Debug.Log("pindot" + hit.transform.name);
-                    DoorInteractable door = interactable.GetComponentInParent<DoorInteractable>();
-                    if (door != null)
-                    {
-                        door.ToogleDoor();
-                    }
-                    else if (interactable.CompareTag("pickable"))
-                    if (BowController.Instance != null && !BowController.Instance.IsBusy())
-                    {
-                        interactable.PickUp();
-                    }
+                    HandleInteraction(interactable, weaponPickup);
                 }
+            }
+            // 2. CHECK FOR ENEMIES
+            else if (enemy != null)
+            {
+                selectedObject = enemy.gameObject;
+                ResetSelectionUI(); // Hide "Pick Up" UI but keep enemy as selectedObject
             }
             else
             {
-                // Also check if we are hitting an Enemy that isn't an "InteractableObject"
-                EnemyHealth enemy = selectionTransform.GetComponent<EnemyHealth>();
-                if(enemy != null)
-                {
-                    selectedObject = enemy.gameObject;
-                }
-                else
-                {
-                    selectedObject = null;
-                }
-                
+                selectedObject = null;
                 ResetSelectionUI();
             }
         }
@@ -112,46 +84,78 @@ public class SelectionManager : MonoBehaviour
             ResetSelectionUI();
         }
 
-        // 3. HANDLE COMBAT (TAKE DAMAGE)
-    // Change "GetButtonDown" to "GetMouseButtonUp" to match the bow release
-    if (Input.GetMouseButtonUp(0)) 
-    {
-    if (selectedObject != null)
-    {
-        // Now this will be true the exact same frame the arrow is created
-        if (BowController.Instance != null && BowController.Instance.IsFired()) 
+        // 3. COMBAT LOGIC (On Mouse Release)
+        if (Input.GetMouseButtonUp(0) && selectedObject != null)
         {
-            EnemyHealth health = selectedObject.GetComponent<EnemyHealth>();
-            if (health != null)
+            if (BowController.Instance != null && BowController.Instance.IsFired())
             {
-                health.TakeDamage(damage);
+                EnemyHealth health = selectedObject.GetComponent<EnemyHealth>();
+                if (health != null) health.TakeDamage(damage);
             }
         }
     }
-}
-    } // close update method
 
-    // These functions must be OUTSIDE of Update, but INSIDE the class
+    private void UpdateUI(InteractableObject interactable, WeaponPickup weapon)
+    {
+        if (Interaction_Info_UI != null) Interaction_Info_UI.SetActive(true);
+
+        // Update Text
+        if (interaction_text != null)
+        {
+            if (interactable) interaction_text.text = interactable.GetItemName();
+            else if (weapon) interaction_text.text = weapon.weaponName;
+        }
+
+        // Update Icons (Fixes the Hand Icon issue)
+        bool isPickable = weapon != null || (interactable != null && interactable.type == InteractableObject.InteractionType.Pickable);
+
+        if (centerDotImage != null) centerDotImage.gameObject.SetActive(!isPickable);
+        if (handIcon != null) handIcon.gameObject.SetActive(isPickable);
+    }
+
+    private void HandleInteraction(InteractableObject interactable, WeaponPickup weapon)
+    {
+        if (weapon != null)
+        {
+            weapon.Interact();
+        }
+        else if (interactable != null)
+        {
+            // Check for door
+            DoorInteractable door = interactable.GetComponentInParent<DoorInteractable>();
+            if (door != null)
+            {
+                door.ToogleDoor();
+            }
+            else
+            {
+                // General Pickup with Bow check
+                if (BowController.Instance == null || !BowController.Instance.IsBusy())
+                {
+                    interactable.PickUp();
+                }
+            }
+        }
+    }
+
     private void ResetSelectionUI()
     {
         onTarget = false;
-        Interaction_Info_UI.SetActive(false);
-        handIcon.gameObject.SetActive(false);
-        centerDotImage.gameObject.SetActive(true);
+        if (Interaction_Info_UI != null) Interaction_Info_UI.SetActive(false);
+        if (handIcon != null) handIcon.gameObject.SetActive(false);
+        if (centerDotImage != null && this.enabled) centerDotImage.gameObject.SetActive(true);
     }
 
     public void DisableSelection()
     {
-        if (handIcon != null) handIcon.enabled = false;
-        centerDotImage.enabled = false;
-        Interaction_Info_UI.SetActive(false);
-        selectedObject = null;
+        this.enabled = false;
+        ResetSelectionUI();
+        if (centerDotImage != null) centerDotImage.gameObject.SetActive(false);
     }
 
     public void EnableSelection()
     {
-        enabled = true;
-        handIcon.enabled = true;
-        centerDotImage.enabled = true;
+        this.enabled = true;
+        if (centerDotImage != null) centerDotImage.gameObject.SetActive(true);
     }
-} 
+}

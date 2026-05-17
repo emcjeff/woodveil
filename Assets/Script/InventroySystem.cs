@@ -2,11 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class InventorySystem : MonoBehaviour
 {
     public static InventorySystem Instance { get; set; }
 
+    [Header("UI General")]
     public GameObject inventoryScreenUI;
     public List<GameObject> slotList = new List<GameObject>();
     public List<string> itemList = new List<string>();
@@ -15,6 +17,9 @@ public class InventorySystem : MonoBehaviour
 
     private void Awake()
     {
+        // PERSISTENCE LOGIC:
+        // If an instance already exists, destroy this new one.
+        // Otherwise, make this one the permanent instance.
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -22,6 +27,7 @@ public class InventorySystem : MonoBehaviour
         else
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject); // Keeps your items across scenes!
         }
     }
 
@@ -29,6 +35,13 @@ public class InventorySystem : MonoBehaviour
     {
         isOpen = false;
         PopulateSlotList();
+
+        // Ensure UI is hidden when starting/switching scenes
+        if (inventoryScreenUI != null)
+        {
+            inventoryScreenUI.SetActive(false);
+        }
+
         Cursor.visible = false;
     }
 
@@ -46,55 +59,92 @@ public class InventorySystem : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.I) && !isOpen)
+        // Check if BookManager exists before checking isBookOpen to avoid errors
+        bool bookOpen = (BookManager.Instance != null && BookManager.Instance.isBookOpen);
+
+        if (Input.GetKeyDown(KeyCode.I) && !bookOpen)
         {
-            inventoryScreenUI.SetActive(true);
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-
-            SelectionManager.Instance.DisableSelection();
-            SelectionManager.Instance.enabled = false; 
-
-            isOpen = true;
-        }
-        else if (Input.GetKeyDown(KeyCode.I) && isOpen)
-        {
-            inventoryScreenUI.SetActive(false);
-            isOpen = false;
-
-            if (!CraftingSystem.Instance.isOpen)
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-
-                SelectionManager.Instance.EnableSelection();
-                SelectionManager.Instance.enabled = true; // Crucial fix
-            }
+            if (!isOpen) OpenInventory();
+            else CloseInventory();
         }
     }
 
-    public void AddToInventory(string itemName)
+    public void AddToInventory(string itemName, int quantity = 1)
     {
-        GameObject whatSlotToEquip = FindNextEmptySlot();
-        
-        if (whatSlotToEquip != null)
+        // 1. Try to find an existing stack that is NOT FULL
+        foreach (GameObject slot in slotList)
         {
-            GameObject itemToAdd = Instantiate(Resources.Load<GameObject>(itemName), whatSlotToEquip.transform.position, whatSlotToEquip.transform.rotation);
-            itemToAdd.transform.SetParent(whatSlotToEquip.transform);
-            itemList.Add(itemName);
+            if (slot.transform.childCount > 0)
+            {
+                InventoryItem itemInSlot = slot.transform.GetChild(0).GetComponent<InventoryItem>();
+
+                if (itemInSlot != null &&
+                    itemInSlot.itemName == itemName &&
+                    itemInSlot.isStackable &&
+                    itemInSlot.amount < itemInSlot.maxAmount)
+                {
+                    int spaceLeft = itemInSlot.maxAmount - itemInSlot.amount;
+                    int amountToAdd = Math.Min(quantity, spaceLeft);
+
+                    itemInSlot.amount += amountToAdd;
+                    itemInSlot.UpdateSlotText();
+
+                    quantity -= amountToAdd;
+
+                    if (quantity <= 0)
+                    {
+                        ReCalculateList();
+                        return;
+                    }
+                }
+            }
         }
+
+        // 2. Create a NEW stack in an empty slot
+        while (quantity > 0)
+        {
+            GameObject whatSlotToEquip = FindNextEmptySlot();
+
+            if (whatSlotToEquip != null)
+            {
+                GameObject prefab = Resources.Load<GameObject>(itemName);
+                if (prefab == null)
+                {
+                    Debug.LogError("Prefab not found in Resources: " + itemName);
+                    return;
+                }
+
+                GameObject itemToAdd = Instantiate(prefab);
+                itemToAdd.transform.SetParent(whatSlotToEquip.transform, false);
+
+                InventoryItem newItem = itemToAdd.GetComponent<InventoryItem>();
+                if (newItem != null)
+                {
+                    newItem.itemName = itemName;
+                    int amountForThisSlot = Math.Min(quantity, newItem.maxAmount);
+                    newItem.amount = amountForThisSlot;
+                    newItem.UpdateSlotText();
+
+                    quantity -= amountForThisSlot;
+                }
+            }
+            else
+            {
+                Debug.Log("Inventory Full!");
+                break;
+            }
+        }
+
+        ReCalculateList();
     }
 
     private GameObject FindNextEmptySlot()
     {
         foreach (GameObject slot in slotList)
         {
-            if (slot.transform.childCount == 0)
-            {
-                return slot;
-            }
+            if (slot.transform.childCount == 0) return slot;
         }
-        return null; 
+        return null;
     }
 
     public bool CheckIfFull()
@@ -105,6 +155,22 @@ public class InventorySystem : MonoBehaviour
         }
         return true;
     }
+    public int GetTotalItemCount(string targetItemName)
+    {
+        int total = 0;
+        foreach (GameObject slot in slotList)
+        {
+            if (slot.transform.childCount > 0)
+            {
+                InventoryItem item = slot.transform.GetChild(0).GetComponent<InventoryItem>();
+                if (item != null && item.itemName == targetItemName)
+                {
+                    total += item.amount;
+                }
+            }
+        }
+        return total;
+    }
 
     public void RemoveItem(string nameToRemove, int amountToRemove)
     {
@@ -114,13 +180,24 @@ public class InventorySystem : MonoBehaviour
         {
             if (slotList[i].transform.childCount > 0)
             {
-                if (slotList[i].transform.GetChild(0).name == nameToRemove + "(Clone)" && counter > 0)
+                InventoryItem item = slotList[i].transform.GetChild(0).GetComponent<InventoryItem>();
+                if (item != null && item.itemName == nameToRemove && counter > 0)
                 {
-                    Destroy(slotList[i].transform.GetChild(0).gameObject);
-                    counter -= 1;
+                    if (item.amount > counter)
+                    {
+                        item.amount -= counter;
+                        counter = 0;
+                        item.UpdateSlotText();
+                    }
+                    else
+                    {
+                        counter -= item.amount;
+                        Destroy(slotList[i].transform.GetChild(0).gameObject);
+                    }
                 }
             }
         }
+        ReCalculateList();
     }
 
     public void ReCalculateList()
@@ -130,10 +207,37 @@ public class InventorySystem : MonoBehaviour
         {
             if (slot.transform.childCount > 0)
             {
-                string name = slot.transform.GetChild(0).name;
-                string result = name.Replace("(Clone)", "");
-                itemList.Add(result);
+                InventoryItem item = slot.transform.GetChild(0).GetComponent<InventoryItem>();
+                if (item != null)
+                {
+                    for (int i = 0; i < item.amount; i++)
+                    {
+                        itemList.Add(item.itemName);
+                    }
+                }
             }
+        }
+    }
+
+    private void OpenInventory()
+    {
+        inventoryScreenUI.SetActive(true);
+        isOpen = true;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        if (SelectionManager.Instance != null) SelectionManager.Instance.DisableSelection();
+    }
+
+    private void CloseInventory()
+    {
+        inventoryScreenUI.SetActive(false);
+        isOpen = false;
+
+        if (CraftingSystem.Instance != null && !CraftingSystem.Instance.isOpen)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            if (SelectionManager.Instance != null) SelectionManager.Instance.EnableSelection();
         }
     }
 }
