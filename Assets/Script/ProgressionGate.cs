@@ -13,20 +13,35 @@ public class ProgressionGate : MonoBehaviour
     [SerializeField] private float checkInterval = 0.5f;
 
     private bool isUnlocked = false;
+    private string uniqueSaveKey;
 
     void Start()
     {
-        // Default target link to itself if left unassigned in editor slots
-        if (objectToGate == null)
+        // Default target link to itself if left unassigned in editor slots
+        if (objectToGate == null)
         {
             objectToGate = this.gameObject;
         }
 
-        // Check conditions instantly at startup
-        EvaluateGate();
+        // Create a unique key using the object's name and position in the world
+        uniqueSaveKey = "ProgGate_" + gameObject.name + "_" + transform.position.ToString();
 
-        // If page has not been recovered yet, schedule loop checks to listen for pickup updates
-        if (!isUnlocked)
+        // UNIQUE MEMORY CHECK: If PlayerPrefs remembers this specific gate was already unlocked in a past visit...
+        if (PlayerPrefs.GetInt(uniqueSaveKey, 0) == 1)
+        {
+            Debug.Log($"[ProgressionGate] {gameObject.name} was already unlocked permanently in a previous scene visit. Vaporizing to prevent duplicate drops!");
+            Destroy(objectToGate);
+            if (objectToGate != this.gameObject)
+            {
+                Destroy(this.gameObject);
+            }
+            return; // Exit out instantly!
+        }
+
+        // --- Your Exact Original Logic Below ---
+        EvaluateGate();
+
+        if (!isUnlocked)
         {
             InvokeRepeating(nameof(EvaluateGate), checkInterval, checkInterval);
         }
@@ -36,15 +51,14 @@ public class ProgressionGate : MonoBehaviour
     {
         if (BookManager.Instance == null) return;
 
-        // Query BookManager directly to see if the target page index reads TRUE
-        if (BookManager.Instance.IsPageUnlocked(requiredPageIndex))
+        if (BookManager.Instance.IsPageUnlocked(requiredPageIndex))
         {
             UnlockTarget();
         }
         else
         {
-            // Lock the state if page is missing
-            if (objectToGate.activeSelf)
+            // Your exact original line that keeps them safely hidden until the condition matches!
+            if (objectToGate.activeSelf)
             {
                 objectToGate.SetActive(false);
             }
@@ -55,12 +69,13 @@ public class ProgressionGate : MonoBehaviour
     {
         isUnlocked = true;
 
-        // Wake up your hidden enemy or spawner trigger
-        objectToGate.SetActive(true);
+        // Save to the computer's memory that THIS specific object has finished its job completely
+        PlayerPrefs.SetInt(uniqueSaveKey, 1);
+        PlayerPrefs.Save();
+
+        objectToGate.SetActive(true);
         Debug.Log($"[ProgressionGate] Target page index {requiredPageIndex} collected! Activating object: {objectToGate.name}");
 
-        // Cancel the loop entirely to maintain flawless frame rate performance
-        CancelInvoke(nameof(EvaluateGate));
+        CancelInvoke(nameof(EvaluateGate));
     }
 }
-

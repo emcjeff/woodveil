@@ -765,6 +765,7 @@ GameObject:
   - component: {fileID: 136828560}
   - component: {fileID: 136828564}
   - component: {fileID: 136828565}
+  - component: {fileID: 136828566}
   m_Layer: 0
   m_Name: Finish
   m_TagString: Untagged
@@ -913,6 +914,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.16, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &136828566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136828558}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68a6520a6395b83478b7453a05096eb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WinTrigger
+  requiredPageIndex: 5
 --- !u!1001 &177871539
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3625,13 +3639,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
   enemyPrefab: {fileID: 9183770661008780414, guid: 2998b303e9f2a2443a2517eeb6eb237e,
     type: 3}
-  spawnPoint: {fileID: 1742469806}
-  enemyCount: 2
+  spawnPoint: {fileID: 2532655551785877615}
+  enemyCount: 3
   scatterRadius: 32.4
   spawnOnlyOnce: 0
   spawnEffect: {fileID: 0}
   bossGate: {fileID: 1265875313}
-  spawnCooldown: 20
+  spawnCooldown: 15
 --- !u!65 &998425729
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3681,7 +3695,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 998425727}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -5799,12 +5813,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!4 &1742469806 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4535811484332546295, guid: 45d6673751cd95441bc7cac6a899a5a2,
-    type: 3}
-  m_PrefabInstance: {fileID: 1382068792150958212}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1788736230
 GameObject:
   m_ObjectHideFlags: 0
@@ -6962,6 +6970,16 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 998425733}
     m_Modifications:
+    - target: {fileID: 797407737243518561, guid: 45d6673751cd95441bc7cac6a899a5a2,
+        type: 3}
+      propertyPath: maxHealth
+      value: 1000
+      objectReference: {fileID: 0}
+    - target: {fileID: 797407737243518561, guid: 45d6673751cd95441bc7cac6a899a5a2,
+        type: 3}
+      propertyPath: barVisibleDuration
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 1808844466591588841, guid: 45d6673751cd95441bc7cac6a899a5a2,
         type: 3}
       propertyPath: lootTable.Array.size
@@ -6978,6 +6996,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 5325947500167980365, guid: 6d1b3f5fe1c5cf34194e4089ade7c5d7,
         type: 3}
+    - target: {fileID: 3067805180246254457, guid: 45d6673751cd95441bc7cac6a899a5a2,
+        type: 3}
+      propertyPath: damageAmount
+      value: 30
+      objectReference: {fileID: 0}
     - target: {fileID: 3156488833393825991, guid: 45d6673751cd95441bc7cac6a899a5a2,
         type: 3}
       propertyPath: m_AnchorMax.x

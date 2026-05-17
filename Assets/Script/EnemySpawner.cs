@@ -7,8 +7,8 @@ public class EnemySpawner : MonoBehaviour
     [Header("Spawn Settings")]
     public GameObject enemyPrefab;
     public Transform spawnPoint;
-    public int enemyCount = 3;         // How many to spawn
-    public float scatterRadius = 2f;   // How far apart they spawn
+    public int enemyCount = 3;         // Minions to spawn alongside the boss (if any)
+    public float scatterRadius = 2f;
 
     [Header("Behavior")]
     public bool spawnOnlyOnce = true;
@@ -18,15 +18,11 @@ public class EnemySpawner : MonoBehaviour
     [Tooltip("The physical wall/barrier GameObject that locks the player inside the arena")]
     public GameObject bossGate;
 
-    [Tooltip("Time delay (in seconds) between wave spawns when 'Spawn Only Once' is unchecked")]
-    [SerializeField] private float spawnCooldown = 20f;
+    [Tooltip("Drag the specific SpiderBoss GameObject from your Hierarchy into this slot!")]
+    [SerializeField] private GameObject spiderBoss;
 
     private bool hasSpawned = false;
-    private bool isSpawnCooldownActive = false; // Prevents overlapping spawn timers
-
-    // Tracks all currently alive enemies spawned by this specific component
-    private List<GameObject> aliveEnemies = new List<GameObject>();
-    private bool trackingEnemies = false;
+    private bool trackingBoss = false;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -34,121 +30,70 @@ public class EnemySpawner : MonoBehaviour
         {
             if (spawnOnlyOnce && hasSpawned) return;
 
-            // If it's repeating and already waiting on a cooldown timer, don't start a duplicate one
-            if (!spawnOnlyOnce && isSpawnCooldownActive) return;
-
             StartCoroutine(SpawnSequence());
         }
     }
 
     private IEnumerator SpawnSequence()
     {
-        if (spawnOnlyOnce)
-        {
-            // Spawn instantly for a single-use narrative encounter/trap
-            SpawnEnemies();
-        }
-        else
-        {
-            // Lock the trigger gate so overlapping entries don't break your timing loop
-            isSpawnCooldownActive = true;
-
-            SpawnEnemies();
-
-            // Wait out your customizable delay (e.g., 20 seconds) before releasing the lock
-            yield return new WaitForSeconds(spawnCooldown);
-
-            isSpawnCooldownActive = false;
-        }
-    }
-
-    void SpawnEnemies()
-    {
-        if (enemyPrefab == null)
-        {
-            Debug.LogError("No Enemy Prefab assigned to the spawner!");
-            return;
-        }
-
         hasSpawned = true;
-        aliveEnemies.Clear();
 
-        // 1. RAISE THE BOSS GATE HOOHOOHO! Lock the player in!
+        // 1. LOCK THE ARENA: Raise the gate instantly when the player enters
         if (bossGate != null)
         {
             bossGate.SetActive(true);
-            Debug.Log("[Arena] Boss Gate Activated! Player is trapped!");
+            Debug.Log("[Arena] Boss Gate Activated! The fight with SpiderBoss has begun!");
         }
 
-        for (int i = 0; i < enemyCount; i++)
+        // 2. SPAWN MINIONS/BOSS (If using prefab instantiation)
+        // If your SpiderBoss is already sitting raw in the scene hierarchy, 
+        // this loop will just spawn its extra minion helper enemies.
+        if (enemyPrefab != null)
         {
-            // Determine base position
-            Vector3 basePos = spawnPoint != null ? spawnPoint.position : transform.position;
-
-            // Add a random offset so they don't overlap
-            Vector3 randomOffset = new Vector3(
-                Random.Range(-scatterRadius, scatterRadius),
-                0,
-                Random.Range(-scatterRadius, scatterRadius)
-            );
-
-            Vector3 finalSpawnPos = basePos + randomOffset;
-            Quaternion rot = spawnPoint != null ? spawnPoint.rotation : transform.rotation;
-
-            // Create the enemy
-            GameObject newEnemy = Instantiate(enemyPrefab, finalSpawnPos, rot);
-
-            // Add them to our tracking list so we know when they die
-            aliveEnemies.Add(newEnemy);
-
-            // NAVMESH SAFETY CHECK
-            UnityEngine.AI.NavMeshAgent agent = newEnemy.GetComponent<UnityEngine.AI.NavMeshAgent>();
-            if (agent != null)
+            for (int i = 0; i < enemyCount; i++)
             {
-                agent.Warp(finalSpawnPos);
-            }
+                Vector3 basePos = spawnPoint != null ? spawnPoint.position : transform.position;
+                Vector3 randomOffset = new Vector3(
+                    Random.Range(-scatterRadius, scatterRadius),
+                    0,
+                    Random.Range(-scatterRadius, scatterRadius)
+                );
+                Vector3 finalSpawnPos = basePos + randomOffset;
+                Quaternion rot = spawnPoint != null ? spawnPoint.rotation : transform.rotation;
 
-            // Create visual effect
-            if (spawnEffect != null)
-            {
-                Instantiate(spawnEffect, finalSpawnPos, rot);
+                GameObject newEnemy = Instantiate(enemyPrefab, finalSpawnPos, rot);
+
+                UnityEngine.AI.NavMeshAgent agent = newEnemy.GetComponent<UnityEngine.AI.NavMeshAgent>();
+                if (agent != null) agent.Warp(finalSpawnPos);
+
+                if (spawnEffect != null) Instantiate(spawnEffect, finalSpawnPos, rot);
             }
         }
 
-        // Start tracking our list of alive monsters
-        trackingEnemies = true;
+        // Start watching the target boss object status explicitly
+        trackingBoss = true;
 
-        // Clean up the collider component completely if it's a one-time fight trigger
-        if (spawnOnlyOnce)
-        {
-            Collider myCollider = GetComponent<Collider>();
-            if (myCollider != null) myCollider.enabled = false;
-        }
+        // Turn off this trigger zone collider so it doesn't double-fire
+        Collider myCollider = GetComponent<Collider>();
+        if (myCollider != null) myCollider.enabled = false;
+
+        yield return null;
     }
 
     private void Update()
     {
-        // Only run checking calculations if we actively have monsters to watch
-        if (trackingEnemies)
+        // 3. NARROWED DOWN GATE CHECK: Monitor ONLY the SpiderBoss state
+        if (trackingBoss)
         {
-            // Clean up missing/destroyed enemy null references out of the collection array
-            for (int i = aliveEnemies.Count - 1; i >= 0; i--)
+            // The exact millisecond the SpiderBoss is killed/destroyed, its reference becomes null
+            if (spiderBoss == null)
             {
-                if (aliveEnemies[i] == null)
-                {
-                    aliveEnemies.RemoveAt(i);
-                }
-            }
-
-            // 2. LOWER THE BOSS GATE! If the count drops back down to zero, open the layout back up!
-            if (aliveEnemies.Count == 0)
-            {
-                trackingEnemies = false; // Turn off monitoring loop updates
+                trackingBoss = false; // Kill the update monitoring loop
 
                 if (bossGate != null)
                 {
                     bossGate.SetActive(false);
-                    Debug.Log("[Arena] All enemies clear! Boss Gate opened.");
+                    Debug.Log("[Arena] SpiderBoss has been defeated! Boss Gate lowered permanently.");
                 }
             }
         }
@@ -158,13 +103,6 @@ public class EnemySpawner : MonoBehaviour
     {
         Gizmos.color = Color.red;
         SphereCollider col = GetComponent<SphereCollider>();
-        if (col != null)
-        {
-            Gizmos.DrawWireSphere(transform.position, col.radius);
-        }
-
-        Gizmos.color = Color.cyan;
-        Vector3 center = spawnPoint != null ? spawnPoint.position : transform.position;
-        Gizmos.DrawWireSphere(center, scatterRadius);
+        if (col != null) Gizmos.DrawWireSphere(transform.position, col.radius);
     }
 }
