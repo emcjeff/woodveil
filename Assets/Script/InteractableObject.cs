@@ -51,21 +51,18 @@ public class InteractableObject : MonoBehaviour
         // 2. SPECIAL LOGIC: The Pages
         if (ItemName.ToLower() == "page")
         {
-            // Kept lowercase 'book' so Unity stops throwing CS0246
-            book pageSystem = Object.FindAnyObjectByType<book>(FindObjectsInactive.Include);
-
-            if (pageSystem != null)
+            if (BookManager.Instance != null)
             {
-                // COMMENTED OUT FOR SAFETY: Your 'book' script has a different name for this method.
-                // pageSystem.UnlockPage(pageIndex); 
+                // Core Fix: Send tracking instruction to global data container directly!
+                BookManager.Instance.UnlockPageGlobal(pageIndex);
+                Debug.Log("Successfully unlocked global Page index: " + pageIndex);
 
-                Debug.Log("Unlocked Page index: " + pageIndex);
                 Destroy(gameObject);
                 return;
             }
             else
             {
-                Debug.LogWarning("Could not find the Book script on the UI!");
+                Debug.LogWarning("BookManager.Instance is missing in the scene!");
             }
         }
 

@@ -8,6 +8,10 @@ public class book : MonoBehaviour
     [SerializeField] private float pageSpeed = 1.5f;
     [SerializeField] private List<Transform> pages;
 
+    [Header("Live Checklist (Check/Uncheck boxes to test live!)")]
+    [Tooltip("You can manually check/uncheck these boxes during Play Mode to test page visibility instantly!")]
+    public List<bool> unlockedPages;
+
     [Header("Navigation Buttons")]
     [SerializeField] private GameObject backButton;
     [SerializeField] private GameObject forwardButton;
@@ -17,15 +21,63 @@ public class book : MonoBehaviour
 
     private void Start()
     {
-        SyncAndRenderLayout();
+        InitialState();
+    }
+
+    // Called automatically by Unity Editor when you toggle fields in the Inspector
+    private void OnValidate()
+    {
+        if (pages != null && (unlockedPages == null || unlockedPages.Count != pages.Count))
+        {
+            SyncInspectorChecklistSize();
+        }
+    }
+
+    private void Update()
+    {
+        // If you are playing and manually checking/unchecking boxes in the inspector,
+        // instantly push those values over to update the real GameObjects and BookManager state.
+        if (Application.isPlaying && BookManager.Instance != null)
+        {
+            for (int i = 0; i < pages.Count; i++)
+            {
+                if (i < unlockedPages.Count && i < BookManager.Instance.unlockedPages.Count)
+                {
+                    if (BookManager.Instance.unlockedPages[i] != unlockedPages[i])
+                    {
+                        BookManager.Instance.unlockedPages[i] = unlockedPages[i];
+                        RefreshPageVisibility();
+                    }
+                }
+            }
+        }
     }
 
     public void SyncAndRenderLayout()
     {
+        InitialState();
+    }
+
+    public void InitialState()
+    {
         index = -1;
         if (BookManager.Instance == null) return;
 
-        // Reset and sync all pages using BookManager's safe central state
+        SyncInspectorChecklistSize();
+
+        // Download data from global BookManager into our local interactive checklist
+        for (int i = 0; i < pages.Count; i++)
+        {
+            unlockedPages[i] = BookManager.Instance.IsPageUnlocked(i);
+        }
+
+        RefreshPageVisibility();
+    }
+
+    public void RefreshPageVisibility()
+    {
+        if (BookManager.Instance == null) return;
+
         for (int i = 0; i < pages.Count; i++)
         {
             if (pages[i] != null)
@@ -36,11 +88,33 @@ public class book : MonoBehaviour
             }
         }
 
-        // Re-order sorting hierarchy layout right from the start
-        UpdatePageHierarchyStacking();
+        // Handle UI overlay stacking hierarchies
+        for (int i = pages.Count - 1; i >= 0; i--)
+        {
+            if (pages[i] != null && BookManager.Instance.IsPageUnlocked(i))
+            {
+                pages[i].SetAsLastSibling();
+            }
+        }
 
         if (backButton != null) backButton.SetActive(false);
         CheckForwardButton();
+    }
+
+    private void SyncInspectorChecklistSize()
+    {
+        if (unlockedPages == null) unlockedPages = new List<bool>();
+        while (unlockedPages.Count < pages.Count) unlockedPages.Add(unlockedPages.Count == 0);
+        while (unlockedPages.Count > pages.Count) unlockedPages.RemoveAt(unlockedPages.Count - 1);
+    }
+
+    public void UnlockPage(int pageIndex)
+    {
+        if (BookManager.Instance != null)
+        {
+            BookManager.Instance.UnlockPageGlobal(pageIndex);
+            InitialState();
+        }
     }
 
     private void CheckForwardButton()
@@ -65,8 +139,6 @@ public class book : MonoBehaviour
 
         index++;
         float angle = 180;
-
-        // Bring the moving page to the absolute front during flip animation transition
         pages[index].SetAsLastSibling();
 
         if (backButton != null) backButton.SetActive(true);
@@ -80,8 +152,6 @@ public class book : MonoBehaviour
         if (rotate || index < 0) { return; }
 
         float angle = 0;
-
-        // Bring the moving page to the absolute front during flip animation transition
         pages[index].SetAsLastSibling();
 
         if (forwardButton != null) forwardButton.SetActive(true);
@@ -106,63 +176,11 @@ public class book : MonoBehaviour
             if (Quaternion.Angle(pages[index].rotation, targetRotation) < 0.1f)
             {
                 pages[index].rotation = targetRotation;
-
-                if (!forward)
-                {
-                    index--;
-                }
-
-                // Recalculate sorting stack completely once page rests
-                UpdatePageHierarchyStacking();
-
+                if (!forward) { index--; }
                 rotate = false;
                 break;
             }
             yield return null;
-        }
-    }
-
-    /// <summary>
-    /// FIXED: Corrects layering order dynamically for both sides.
-    /// Left side pile layout: Higher numbers render ON TOP of lower numbers (Page 2 covers Page 1).
-    /// Right side stack layout: Lower numbers render ON TOP of higher numbers (Page 1 covers Page 2).
-    /// </summary>
-    private void UpdatePageHierarchyStacking()
-    {
-        // Loop backward from last page to first page to build the proper UI drawing queue stack
-        for (int i = pages.Count - 1; i >= 0; i--)
-        {
-            if (pages[i] == null || !pages[i].gameObject.activeSelf) continue;
-
-            if (i <= index)
-            {
-                // LEFT SIDE PAGES PILE:
-                // We want higher index pages to cover lower index pages (e.g., Page 2 covers Page 1)
-                // By making lower numbers Last Sibling first, then higher numbers Last Sibling after,
-                // the higher numbers stack right on top.
-                pages[i].SetAsLastSibling();
-            }
-            else
-            {
-                // RIGHT SIDE PAGES PILE:
-                // We want lower index pages to cover higher index pages (e.g., Page 1 covers Page 2)
-                // By sending higher numbers to First Sibling first, they drop to the back ground,
-                // allowing the lower numbers to naturally stay in the front.
-                pages[i].SetAsFirstSibling();
-            }
-        }
-
-        // Safety override: The current page actively being flipped or resting open must stay on top of the piles
-        if (index >= 0 && index < pages.Count && pages[index] != null)
-        {
-            pages[index].SetAsLastSibling();
-        }
-
-        // Also ensure the next page in line on the right side is visible on top of its pile
-        int nextRightPage = index + 1;
-        if (nextRightPage < pages.Count && pages[nextRightPage] != null && pages[nextRightPage].gameObject.activeSelf)
-        {
-            pages[nextRightPage].SetAsLastSibling();
         }
     }
 
@@ -175,6 +193,6 @@ public class book : MonoBehaviour
         }
         StopAllCoroutines();
         rotate = false;
-        SyncAndRenderLayout();
+        InitialState();
     }
 }
