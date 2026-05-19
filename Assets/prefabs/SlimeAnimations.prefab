@@ -304,7 +304,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7148042028152722796}
   - component: {fileID: 1659956314983542516}
-  - component: {fileID: 3861314020165904143}
   - component: {fileID: 8621615510473606318}
   - component: {fileID: 2877984288321617304}
   - component: {fileID: 71283310680389902}
@@ -314,6 +313,7 @@ GameObject:
   - component: {fileID: 3162458974343799025}
   - component: {fileID: 546384161235462435}
   - component: {fileID: 3306575057981305744}
+  - component: {fileID: -4769130311636587296}
   m_Layer: 0
   m_Name: SlimeAnimations
   m_TagString: Enemy
@@ -361,23 +361,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &3861314020165904143
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6697281870307641476}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: db6577d8bab87f944915e992908d7f31, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AI_Movement
-  moveSpeed: 1.5
-  rotationSpeed: 5
-  walkTime: 2
-  waitTime: 2
-  isWalking: 0
 --- !u!54 &8621615510473606318
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -530,7 +513,7 @@ MonoBehaviour:
   lootTable:
   - itemPrefab: {fileID: 8555206067499702550, guid: 44ade84fdc1b78748863c2413c0759b3,
       type: 3}
-    dropChance: 50
+    dropChance: 29
   - itemPrefab: {fileID: 7278795672043744433, guid: d905396f6e82bfd49896fce0e6557d67,
       type: 3}
     dropChance: 100
@@ -550,6 +533,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDamage
   damageAmount: 10
   attackSpeed: 2
+--- !u!114 &-4769130311636587296
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6697281870307641476}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5971f22fc04c7fe40b14ba55ec3dbfd0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SlimeMovement3D
+  player: {fileID: 0}
+  detectionRadius: 15
+  jumpForce: 3
+  forwardSpeed: 1
+  restDuration: 0
+  homeReturnThreshold: 3
 --- !u!1 &6942114889229213680
 GameObject:
   m_ObjectHideFlags: 0

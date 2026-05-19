@@ -17,12 +17,14 @@ public class CraftingSystem : MonoBehaviour
     // --- Axe UI ---
     private Button craftAxeBTN;
     private TextMeshProUGUI AxeReq1, AxeReq2;
-    public Blueprint AxeBLP = new Blueprint("Axe", 2, "Stone", 3, "Stick", 3);
+    // FIXED: Added "Axe" as the first argument so it matches the 7 required parameters!
+    public Blueprint AxeBLP = new Blueprint("Axe", "Axe", 2, "Stone", 3, "Stick", 3);
 
     // --- Arrow UI ---
     private Button craftArrowBTN;
     private TextMeshProUGUI ArrowReq1, ArrowReq2;
-    public Blueprint ArrowBLP = new Blueprint("ArrowUI", 2, "Stone", 1, "Stick", 1);
+    // FIXED: Added "ArrowUI" as the first argument so it matches the 7 required parameters!
+    public Blueprint ArrowBLP = new Blueprint("ArrowUI", "ArrowUI", 2, "Stone", 1, "Stick", 1);
 
     public bool isOpen;
     public static CraftingSystem Instance { get; set; }
@@ -82,6 +84,22 @@ public class CraftingSystem : MonoBehaviour
         {
             BookManager.Instance.CompleteObjective(7); // Triggers Line 7 Cross-out!
             Debug.Log("Quest Complete: Crafted a primitive Axe!");
+        }
+
+        // --- TRIGGER CRAFTING NOTIFICATION ---
+        if (NotificationManager.Instance != null)
+        {
+            // If crafting ArrowUI, name it something nicer for the player pop-up
+            string standardName = (blueprintToCraft.itemName == "ArrowUI") ? "Arrow" : blueprintToCraft.itemName;
+
+            if (amountToGive > 1)
+            {
+                NotificationManager.Instance.ShowNotification($"Successfully Crafted {standardName} x{amountToGive}!");
+            }
+            else
+            {
+                NotificationManager.Instance.ShowNotification($"Successfully Crafted {standardName}!");
+            }
         }
 
         if (blueprintToCraft.numOfRequirements == 1)

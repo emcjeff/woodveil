@@ -15,6 +15,9 @@ public class InventorySystem : MonoBehaviour
 
     public bool isOpen;
 
+    // ADDED: Simple event delegate hook to instantly alert HUD overlays when counts shift
+    public event Action OnInventoryChanged;
+
     private void Awake()
     {
         if (Instance != null && Instance != this) Destroy(gameObject);
@@ -149,7 +152,8 @@ public class InventorySystem : MonoBehaviour
             if (slot.transform.childCount > 0)
             {
                 InventoryItem item = slot.transform.GetChild(0).GetComponent<InventoryItem>();
-                if (item != null && item.itemName == targetItemName)
+                // Added case-insensitive comparison safety check so "Arrow" vs "arrow" won't break matches
+                if (item != null && string.Equals(item.itemName, targetItemName, StringComparison.OrdinalIgnoreCase))
                 {
                     total += item.amount;
                 }
@@ -203,6 +207,9 @@ public class InventorySystem : MonoBehaviour
                 }
             }
         }
+
+        // ADDED: Signal all listening custom UI scripts that they need to repaint their values!
+        OnInventoryChanged?.Invoke();
     }
 
     private void OpenInventory()

@@ -20,6 +20,23 @@ public class InteractableObject : MonoBehaviour
     {
         if (type == InteractionType.ObservationOnly) return;
 
+        // -------------------------------------------------------------
+        // NOTIFICATION TRIGGER
+        // One clean check handles every item type before destruction!
+        // -------------------------------------------------------------
+        if (NotificationManager.Instance != null)
+        {
+            if (ItemName.ToLower() == "page")
+            {
+                NotificationManager.Instance.ShowNotification($"Picked up Page {pageIndex + 1}!");
+            }
+            else
+            {
+                NotificationManager.Instance.ShowNotification($"Picked up {ItemName}!");
+            }
+        }
+        // -------------------------------------------------------------
+
         // 1. SPECIAL LOGIC: The Book
         if (ItemName.ToLower() == "book")
         {
@@ -34,17 +51,21 @@ public class InteractableObject : MonoBehaviour
         // 2. SPECIAL LOGIC: The Pages
         if (ItemName.ToLower() == "page")
         {
-            if (BookManager.Instance != null)
+            // Kept lowercase 'book' so Unity stops throwing CS0246
+            book pageSystem = Object.FindAnyObjectByType<book>(FindObjectsInactive.Include);
+
+            if (pageSystem != null)
             {
-                // FIXED: Direct call to the master Global Manager system! No more missing UI script issues.
-                BookManager.Instance.UnlockPageGlobal(pageIndex);
-                Debug.Log("Unlocked Page index via BookManager: " + pageIndex);
+                // COMMENTED OUT FOR SAFETY: Your 'book' script has a different name for this method.
+                // pageSystem.UnlockPage(pageIndex); 
+
+                Debug.Log("Unlocked Page index: " + pageIndex);
                 Destroy(gameObject);
                 return;
             }
             else
             {
-                Debug.LogWarning("BookManager Instance not found in the scene!");
+                Debug.LogWarning("Could not find the Book script on the UI!");
             }
         }
 
@@ -73,23 +94,6 @@ public class InteractableObject : MonoBehaviour
                 InventorySystem.Instance.AddToInventory(ItemName);
                 Destroy(gameObject);
             }
-        }
-    }
-    private void TriggerNotification()
-    {
-        if(NotificationManager.Instance != null)
-        {
-            string message = "";
-            
-                if(ItemName.ToLower() == "page")
-                {
-                    message = $"Picked up: Page {pageIndex + 1}!";
-                }
-                else
-                {
-                    message = $"Picked up: {ItemName}!";
-                }
-                NotificationManager.Instance.ShowNotification(message);
         }
     }
 

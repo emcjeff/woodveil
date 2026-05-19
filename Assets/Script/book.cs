@@ -25,7 +25,7 @@ public class book : MonoBehaviour
         index = -1;
         if (BookManager.Instance == null) return;
 
-        // Sync visual structure directly using BookManager's safe central state
+        // Reset and sync all pages using BookManager's safe central state
         for (int i = 0; i < pages.Count; i++)
         {
             if (pages[i] != null)
@@ -36,11 +36,8 @@ public class book : MonoBehaviour
             }
         }
 
-        for (int i = pages.Count - 1; i >= 0; i--)
-        {
-            if (pages[i] != null && BookManager.Instance.IsPageUnlocked(i))
-                pages[i].SetAsLastSibling();
-        }
+        // Re-order sorting hierarchy layout right from the start
+        UpdatePageHierarchyStacking();
 
         if (backButton != null) backButton.SetActive(false);
         CheckForwardButton();
@@ -69,6 +66,7 @@ public class book : MonoBehaviour
         index++;
         float angle = 180;
 
+        // Bring the moving page to the absolute front during flip animation transition
         pages[index].SetAsLastSibling();
 
         if (backButton != null) backButton.SetActive(true);
@@ -82,6 +80,8 @@ public class book : MonoBehaviour
         if (rotate || index < 0) { return; }
 
         float angle = 0;
+
+        // Bring the moving page to the absolute front during flip animation transition
         pages[index].SetAsLastSibling();
 
         if (forwardButton != null) forwardButton.SetActive(true);
@@ -107,19 +107,62 @@ public class book : MonoBehaviour
             {
                 pages[index].rotation = targetRotation;
 
-                if (forward)
-                {
-                    pages[index].SetAsFirstSibling();
-                }
-                else
+                if (!forward)
                 {
                     index--;
                 }
+
+                // Recalculate sorting stack completely once page rests
+                UpdatePageHierarchyStacking();
 
                 rotate = false;
                 break;
             }
             yield return null;
+        }
+    }
+
+    /// <summary>
+    /// FIXED: Corrects layering order dynamically for both sides.
+    /// Left side pile layout: Higher numbers render ON TOP of lower numbers (Page 2 covers Page 1).
+    /// Right side stack layout: Lower numbers render ON TOP of higher numbers (Page 1 covers Page 2).
+    /// </summary>
+    private void UpdatePageHierarchyStacking()
+    {
+        // Loop backward from last page to first page to build the proper UI drawing queue stack
+        for (int i = pages.Count - 1; i >= 0; i--)
+        {
+            if (pages[i] == null || !pages[i].gameObject.activeSelf) continue;
+
+            if (i <= index)
+            {
+                // LEFT SIDE PAGES PILE:
+                // We want higher index pages to cover lower index pages (e.g., Page 2 covers Page 1)
+                // By making lower numbers Last Sibling first, then higher numbers Last Sibling after,
+                // the higher numbers stack right on top.
+                pages[i].SetAsLastSibling();
+            }
+            else
+            {
+                // RIGHT SIDE PAGES PILE:
+                // We want lower index pages to cover higher index pages (e.g., Page 1 covers Page 2)
+                // By sending higher numbers to First Sibling first, they drop to the back ground,
+                // allowing the lower numbers to naturally stay in the front.
+                pages[i].SetAsFirstSibling();
+            }
+        }
+
+        // Safety override: The current page actively being flipped or resting open must stay on top of the piles
+        if (index >= 0 && index < pages.Count && pages[index] != null)
+        {
+            pages[index].SetAsLastSibling();
+        }
+
+        // Also ensure the next page in line on the right side is visible on top of its pile
+        int nextRightPage = index + 1;
+        if (nextRightPage < pages.Count && pages[nextRightPage] != null && pages[nextRightPage].gameObject.activeSelf)
+        {
+            pages[nextRightPage].SetAsLastSibling();
         }
     }
 
@@ -132,5 +175,6 @@ public class book : MonoBehaviour
         }
         StopAllCoroutines();
         rotate = false;
+        SyncAndRenderLayout();
     }
 }
