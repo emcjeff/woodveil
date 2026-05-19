@@ -2409,7 +2409,7 @@ MonoBehaviour:
   spawnPoint: {fileID: 542663442}
   enemyCount: 3
   scatterRadius: 5.91
-  spawnOnlyOnce: 0
+  respawnCooldown: 30
   spawnEffect: {fileID: 0}
   bossGate: {fileID: 0}
   spiderBoss: {fileID: 0}
@@ -3618,6 +3618,7 @@ GameObject:
   - component: {fileID: 998425729}
   - component: {fileID: 998425728}
   - component: {fileID: 998425734}
+  - component: {fileID: 998425735}
   m_Layer: 0
   m_Name: Spawner
   m_TagString: Untagged
@@ -3642,7 +3643,7 @@ MonoBehaviour:
   spawnPoint: {fileID: 2532655551785877615}
   enemyCount: 3
   scatterRadius: 32.4
-  spawnOnlyOnce: 0
+  respawnCooldown: 30
   spawnEffect: {fileID: 0}
   bossGate: {fileID: 1265875313}
   spiderBoss: {fileID: 1382068792150958213}
@@ -3774,6 +3775,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProgressionGate
   requiredPageIndex: 4
+--- !u!114 &998425735
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 998425727}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba98841813372c44f9e3e229937a3478, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UniqueItemPersistence
+  uniqueType: 3
+  pageIndex: 5
 --- !u!1001 &1001097634
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5059,6 +5074,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1460032402}
+    - targetCorrespondingSourceObject: {fileID: 3303629323987353051, guid: e7fea82ed96f0d5479bc919b0ea7a323,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1460032403}
   m_SourcePrefab: {fileID: 100100000, guid: e7fea82ed96f0d5479bc919b0ea7a323, type: 3}
 --- !u!1 &1460032401 stripped
 GameObject:
@@ -5079,6 +5098,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProgressionGate
   requiredPageIndex: 2
+--- !u!114 &1460032403
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1460032401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba98841813372c44f9e3e229937a3478, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UniqueItemPersistence
+  uniqueType: 3
+  pageIndex: 3
 --- !u!1001 &1497639009
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6871,7 +6904,7 @@ MonoBehaviour:
   spawnPoint: {fileID: 2070306085}
   enemyCount: 2
   scatterRadius: 6.75
-  spawnOnlyOnce: 0
+  respawnCooldown: 30
   spawnEffect: {fileID: 0}
   bossGate: {fileID: 0}
   spiderBoss: {fileID: 0}

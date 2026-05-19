@@ -865,7 +865,7 @@ PrefabInstance:
     - target: {fileID: 903428954847373576, guid: 784297eaf48342d44b77976dc417ae9a,
         type: 3}
       propertyPath: scatterRadius
-      value: 47.4
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 903428954847373576, guid: 784297eaf48342d44b77976dc417ae9a,
         type: 3}
@@ -876,6 +876,11 @@ PrefabInstance:
         type: 3}
       propertyPath: spawnOnlyOnce
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 903428954847373576, guid: 784297eaf48342d44b77976dc417ae9a,
+        type: 3}
+      propertyPath: respawnCooldown
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 1121803213172740189, guid: 784297eaf48342d44b77976dc417ae9a,
         type: 3}
@@ -4763,6 +4768,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1027381570}
+    - targetCorrespondingSourceObject: {fileID: 5325947500167980365, guid: 4d9f32c5b0a3ee74b9fd1656689b2004,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1027381571}
   m_SourcePrefab: {fileID: 100100000, guid: 4d9f32c5b0a3ee74b9fd1656689b2004, type: 3}
 --- !u!4 &1027381568 stripped
 Transform:
@@ -4789,6 +4798,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProgressionGate
   requiredPageIndex: 3
+--- !u!114 &1027381571
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1027381569}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba98841813372c44f9e3e229937a3478, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UniqueItemPersistence
+  uniqueType: 3
+  pageIndex: 4
 --- !u!1 &1033966736
 GameObject:
   m_ObjectHideFlags: 0
@@ -5115,7 +5138,7 @@ MonoBehaviour:
   spawnPoint: {fileID: 483302374}
   enemyCount: 1
   scatterRadius: 10.47
-  spawnOnlyOnce: 0
+  respawnCooldown: 30
   spawnEffect: {fileID: 0}
   bossGate: {fileID: 0}
   spiderBoss: {fileID: 0}
@@ -8029,7 +8052,7 @@ MonoBehaviour:
   spawnPoint: {fileID: 415076527}
   enemyCount: 1
   scatterRadius: 19.86
-  spawnOnlyOnce: 0
+  respawnCooldown: 30
   spawnEffect: {fileID: 0}
   bossGate: {fileID: 0}
   spiderBoss: {fileID: 0}
@@ -9511,7 +9534,7 @@ MonoBehaviour:
   spawnPoint: {fileID: 1370103161}
   enemyCount: 1
   scatterRadius: 18.26
-  spawnOnlyOnce: 0
+  respawnCooldown: 30
   spawnEffect: {fileID: 0}
   bossGate: {fileID: 0}
   spiderBoss: {fileID: 0}
@@ -10882,6 +10905,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1591548337117085767}
+    - targetCorrespondingSourceObject: {fileID: 1910239946085755247, guid: 5b08fc282607cc94b9060efda8cfd881,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1591548337117085768}
   m_SourcePrefab: {fileID: 100100000, guid: 5b08fc282607cc94b9060efda8cfd881, type: 3}
 --- !u!4 &1591548337117085765 stripped
 Transform:
@@ -10908,6 +10935,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProgressionGate
   requiredPageIndex: 1
+--- !u!114 &1591548337117085768
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1591548337117085766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba98841813372c44f9e3e229937a3478, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UniqueItemPersistence
+  uniqueType: 3
+  pageIndex: 2
 --- !u!1 &1619165290238582664
 GameObject:
   m_ObjectHideFlags: 0
@@ -11051,6 +11092,7 @@ GameObject:
   - component: {fileID: 2500249867808851222}
   - component: {fileID: 2500249867808851221}
   - component: {fileID: 2500249867808851220}
+  - component: {fileID: 2500249867808851223}
   m_Layer: 9
   m_Name: HeadLamp
   m_TagString: pickable
@@ -11223,6 +11265,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 196.53662, y: 96.71736, z: 200}
   m_Center: {x: 1.7316895, y: 32.172234, z: -0.00390625}
+--- !u!114 &2500249867808851223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2186118544616951820}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba98841813372c44f9e3e229937a3478, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UniqueItemPersistence
+  uniqueType: 1
+  pageIndex: 0
 --- !u!4 &2626652357783608059
 Transform:
   m_ObjectHideFlags: 0
@@ -11409,6 +11465,7 @@ GameObject:
   - component: {fileID: 3866067091498179339}
   - component: {fileID: 3866067091498179338}
   - component: {fileID: 3866067091498179337}
+  - component: {fileID: 3866067091498179340}
   m_Layer: 0
   m_Name: Book
   m_TagString: Untagged
@@ -11675,6 +11732,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.022488, y: 1.96677, z: 3.1627576}
   m_Center: {x: -0.00071832736, y: -0.005128055, z: -0.48019543}
+--- !u!114 &3866067091498179340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3361932695402461917}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba98841813372c44f9e3e229937a3478, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UniqueItemPersistence
+  uniqueType: 0
+  pageIndex: 0
 --- !u!33 &3910696011937486302
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -12937,6 +13008,7 @@ GameObject:
   - component: {fileID: 9040476165192519853}
   - component: {fileID: 9040476165192519852}
   - component: {fileID: 9040476165192519855}
+  - component: {fileID: 9040476165192519856}
   m_Layer: 9
   m_Name: GroundBow
   m_TagString: pickable
@@ -13017,6 +13089,20 @@ MonoBehaviour:
   type: 0
   playerInRange: 0
   ItemName: Bow
+  pageIndex: 0
+--- !u!114 &9040476165192519856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9040476165192519851}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba98841813372c44f9e3e229937a3478, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UniqueItemPersistence
+  uniqueType: 2
   pageIndex: 0
 --- !u!1001 &9086159903014343787
 PrefabInstance:
@@ -13169,6 +13255,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 9086159903014343789}
+    - targetCorrespondingSourceObject: {fileID: 6604001144272779875, guid: 5bfb4be4f50a5414ba4e1227082c0e40,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9086159903014343791}
   m_SourcePrefab: {fileID: 100100000, guid: 5bfb4be4f50a5414ba4e1227082c0e40, type: 3}
 --- !u!1 &9086159903014343788 stripped
 GameObject:
@@ -13195,6 +13285,20 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 9086159903014343787}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &9086159903014343791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9086159903014343788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba98841813372c44f9e3e229937a3478, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UniqueItemPersistence
+  uniqueType: 3
+  pageIndex: 1
 --- !u!4 &9222570063095401625
 Transform:
   m_ObjectHideFlags: 0

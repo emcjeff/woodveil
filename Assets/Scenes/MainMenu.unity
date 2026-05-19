@@ -400,6 +400,11 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1558803295}
+    - target: {fileID: 2753631125590010249, guid: 51cf085d79ad2754f921458d11d2dd1f,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3301690219380677832, guid: 51cf085d79ad2754f921458d11d2dd1f,
         type: 3}
       propertyPath: m_IsActive
@@ -660,6 +665,12 @@ MonoBehaviour:
 --- !u!1 &337332984 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5159258183131890012, guid: 51cf085d79ad2754f921458d11d2dd1f,
+    type: 3}
+  m_PrefabInstance: {fileID: 337332981}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &337332985 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2753631125590010249, guid: 51cf085d79ad2754f921458d11d2dd1f,
     type: 3}
   m_PrefabInstance: {fileID: 337332981}
   m_PrefabAsset: {fileID: 0}
@@ -1639,6 +1650,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: PLAYER
       objectReference: {fileID: 0}
+    - target: {fileID: 6402812174437049503, guid: 0e5c481d3426933499de4e1b09cb4640,
+        type: 3}
+      propertyPath: headlampUI
+      value: 
+      objectReference: {fileID: 337332985}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

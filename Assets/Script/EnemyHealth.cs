@@ -81,36 +81,40 @@ public class EnemyHealth : MonoBehaviour
             GetComponent<NavMeshAgent>().enabled = false;
         }
 
-        // --- SIGNAL ENEMY KILLS TO THE BOOKMANAGER ---
+        // ========================================================
+        // CRITICAL FIX: SHUT DOWN THE SLIME HOP MECHANICS INSTANTLY
+        // ========================================================
+        SlimeMovement3D slimeMove = GetComponent<SlimeMovement3D>();
+        if (slimeMove != null)
+        {
+            slimeMove.enabled = false; // Toggling this off fires our self-disabling code!
+        }
+        // ========================================================
 
+        // --- SIGNAL ENEMY KILLS TO THE BOOKMANAGER ---
         if (BookManager.Instance != null)
         {
-            // 1. Check for Spider Boss (Explicit validation check goes first!)
             if (gameObject.name.Contains("SpiderBoss") || gameObject.name.Contains("Spider Boss"))
             {
                 BookManager.Instance.RegisterSpiderBossKill();
             }
-            // 2. Check for regular Spiders (Only tracks if it's not the ultimate boss)
             else if (gameObject.name.Contains("Spider"))
             {
                 BookManager.Instance.RegisterSpiderKill(gameObject.name);
             }
-            // 3. Check for Slimes
             else if (gameObject.name.Contains("Slime"))
             {
                 BookManager.Instance.RegisterSlimeKill(gameObject.name);
             }
         }
-
         // ------------------------------------------------------
 
-        // Start the timer to drop loot and then destroy the body
         StartCoroutine(DestroyObject());
     }
 
     IEnumerator DestroyObject()
     {
-        // Wait for the death animation to finish
+        // Wait safely for 2 seconds while the animation finishes on the ground
         yield return new WaitForSeconds(2.0f);
 
         // --- CONNECT TO ENEMY DROP ---
