@@ -20,15 +20,12 @@ public class MissionStartTrigger : MonoBehaviour
     private List<GameObject> objectiveCrossOutLines = new List<GameObject>();
     private static bool hasShownMission = false;
 
-    // Static array remembers which objectives are done across all scene changes
-    private static bool[] completedObjectives = new bool[5];
-
     private void Start()
     {
-        // 1. Find the panel and lines inside the global persistent Canvas
+        // 1. Find the panel and lines inside the canvas hierarchy
         FindUIElementsInScene();
 
-        // 2. Sync the lines to show what's already completed
+        // 2. Sync the lines directly from BookManager's global state data array
         UpdateAllObjectiveVisuals();
 
         // If the initial intro pop-up already happened, turn off this trigger box right away
@@ -143,28 +140,37 @@ public class MissionStartTrigger : MonoBehaviour
         if (col != null) col.enabled = false;
     }
 
+    // FIXED: Routes completion through the centralized BookManager instance instead of a local static array
     public void CompleteObjective(int objectiveNumber)
     {
-        int index = objectiveNumber - 1;
-
-        if (index >= 0 && index < completedObjectives.Length)
+        if (BookManager.Instance != null)
         {
-            completedObjectives[index] = true;
+            // Update central state registry array
+            BookManager.Instance.CompleteObjective(objectiveNumber);
 
-            // Make sure we have the line links before toggling them
+            // Make sure we have local UI elements tracked down, then update the line strikes
             FindUIElementsInScene();
             UpdateAllObjectiveVisuals();
-            Debug.Log($"Objective {objectiveNumber} crossed out cross-scene!");
+            Debug.Log($"MissionStartTrigger: Syncing Objective {objectiveNumber} with Global BookManager.");
+        }
+        else
+        {
+            Debug.LogError("MissionStartTrigger: Cannot complete objective because BookManager is missing from the level framework!");
         }
     }
 
+    // FIXED: Reads verification data parameters entirely out of your global singleton memory storage asset
     private void UpdateAllObjectiveVisuals()
     {
+        if (BookManager.Instance == null) return;
+
         for (int i = 0; i < objectiveCrossOutLines.Count; i++)
         {
             if (objectiveCrossOutLines[i] != null)
             {
-                objectiveCrossOutLines[i].SetActive(completedObjectives[i]);
+                // Check objective index tracking via BookManager's central array matrix layout
+                bool isCompleted = BookManager.Instance.IsObjectiveComplete(i + 1);
+                objectiveCrossOutLines[i].SetActive(isCompleted);
             }
         }
     }

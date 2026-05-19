@@ -8,10 +8,6 @@ public class book : MonoBehaviour
     [SerializeField] private float pageSpeed = 1.5f;
     [SerializeField] private List<Transform> pages;
 
-    [Header("Progression Status")]
-    [Tooltip("Match this size to your total page count. Set true for pages the player starts with, false for pages they must find.")]
-    public List<bool> unlockedPages;
-
     [Header("Navigation Buttons")]
     [SerializeField] private GameObject backButton;
     [SerializeField] private GameObject forwardButton;
@@ -21,63 +17,41 @@ public class book : MonoBehaviour
 
     private void Start()
     {
-        // SAFETY: If the list was left completely unassigned, initialize it dynamically
-        if (unlockedPages == null || unlockedPages.Count == 0)
-        {
-            unlockedPages = new List<bool>();
-            for (int i = 0; i < pages.Count; i++)
-            {
-                // Only the very first page sheet is active by default
-                unlockedPages.Add(i == 0);
-            }
-        }
-
-        InitialState();
+        SyncAndRenderLayout();
     }
 
-    public void InitialState()
+    public void SyncAndRenderLayout()
     {
+        index = -1;
+        if (BookManager.Instance == null) return;
+
+        // Sync visual structure directly using BookManager's safe central state
         for (int i = 0; i < pages.Count; i++)
         {
             if (pages[i] != null)
             {
                 pages[i].transform.rotation = Quaternion.identity;
-                // Display the page if it is officially unlocked
-                pages[i].gameObject.SetActive(unlockedPages[i]);
+                bool isUnlocked = BookManager.Instance.IsPageUnlocked(i);
+                pages[i].gameObject.SetActive(isUnlocked);
             }
         }
 
-        // Stacking order priority logic for active pages
         for (int i = pages.Count - 1; i >= 0; i--)
         {
-            if (pages[i] != null && unlockedPages[i])
+            if (pages[i] != null && BookManager.Instance.IsPageUnlocked(i))
                 pages[i].SetAsLastSibling();
         }
 
-        index = -1;
         if (backButton != null) backButton.SetActive(false);
-
         CheckForwardButton();
-    }
-
-    public void UnlockPage(int pageIndex)
-    {
-        if (pageIndex >= 0 && pageIndex < unlockedPages.Count)
-        {
-            unlockedPages[pageIndex] = true;
-            Debug.Log($"[Book System] Page Index {pageIndex} has been set to TRUE (Unlocked!)");
-
-            // Refresh the pages instantly
-            InitialState();
-        }
     }
 
     private void CheckForwardButton()
     {
-        if (forwardButton == null) return;
+        if (forwardButton == null || BookManager.Instance == null) return;
 
         int nextIndex = index + 1;
-        if (nextIndex < pages.Count && unlockedPages[nextIndex])
+        if (nextIndex < pages.Count && BookManager.Instance.IsPageUnlocked(nextIndex))
         {
             forwardButton.SetActive(true);
         }
@@ -90,10 +64,11 @@ public class book : MonoBehaviour
     public void RotateForward()
     {
         int nextIndex = index + 1;
-        if (rotate || nextIndex >= pages.Count || !unlockedPages[nextIndex]) { return; }
+        if (BookManager.Instance == null || rotate || nextIndex >= pages.Count || !BookManager.Instance.IsPageUnlocked(nextIndex)) { return; }
 
         index++;
         float angle = 180;
+
         pages[index].SetAsLastSibling();
 
         if (backButton != null) backButton.SetActive(true);
@@ -131,7 +106,16 @@ public class book : MonoBehaviour
             if (Quaternion.Angle(pages[index].rotation, targetRotation) < 0.1f)
             {
                 pages[index].rotation = targetRotation;
-                if (!forward) { index--; }
+
+                if (forward)
+                {
+                    pages[index].SetAsFirstSibling();
+                }
+                else
+                {
+                    index--;
+                }
+
                 rotate = false;
                 break;
             }

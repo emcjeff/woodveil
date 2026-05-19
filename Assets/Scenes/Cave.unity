@@ -2412,7 +2412,7 @@ MonoBehaviour:
   spawnOnlyOnce: 0
   spawnEffect: {fileID: 0}
   bossGate: {fileID: 0}
-  spawnCooldown: 40
+  spiderBoss: {fileID: 0}
 --- !u!1001 &569326670
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3645,7 +3645,7 @@ MonoBehaviour:
   spawnOnlyOnce: 0
   spawnEffect: {fileID: 0}
   bossGate: {fileID: 1265875313}
-  spawnCooldown: 15
+  spiderBoss: {fileID: 1382068792150958213}
 --- !u!65 &998425729
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3773,9 +3773,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef473220d969c0043b3c2325c930878d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProgressionGate
-  objectToGate: {fileID: 0}
   requiredPageIndex: 4
-  checkInterval: 0.5
 --- !u!1001 &1001097634
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5080,9 +5078,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef473220d969c0043b3c2325c930878d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProgressionGate
-  objectToGate: {fileID: 0}
   requiredPageIndex: 2
-  checkInterval: 0.5
 --- !u!1001 &1497639009
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6878,7 +6874,7 @@ MonoBehaviour:
   spawnOnlyOnce: 0
   spawnEffect: {fileID: 0}
   bossGate: {fileID: 0}
-  spawnCooldown: 40
+  spiderBoss: {fileID: 0}
 --- !u!1001 &767931183187193318
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7091,6 +7087,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 45d6673751cd95441bc7cac6a899a5a2, type: 3}
+--- !u!1 &1382068792150958213 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4332123323334850252, guid: 45d6673751cd95441bc7cac6a899a5a2,
+    type: 3}
+  m_PrefabInstance: {fileID: 1382068792150958212}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2532655551785877615 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5632228496000079960, guid: 45d6673751cd95441bc7cac6a899a5a2,

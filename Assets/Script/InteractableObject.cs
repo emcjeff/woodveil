@@ -34,18 +34,17 @@ public class InteractableObject : MonoBehaviour
         // 2. SPECIAL LOGIC: The Pages
         if (ItemName.ToLower() == "page")
         {
-            book pageSystem = Object.FindAnyObjectByType<book>(FindObjectsInactive.Include);
-
-            if (pageSystem != null)
+            if (BookManager.Instance != null)
             {
-                pageSystem.UnlockPage(pageIndex);
-                Debug.Log("Unlocked Page index: " + pageIndex);
+                // FIXED: Direct call to the master Global Manager system! No more missing UI script issues.
+                BookManager.Instance.UnlockPageGlobal(pageIndex);
+                Debug.Log("Unlocked Page index via BookManager: " + pageIndex);
                 Destroy(gameObject);
                 return;
             }
             else
             {
-                Debug.LogWarning("Could not find the Book script on the UI!");
+                Debug.LogWarning("BookManager Instance not found in the scene!");
             }
         }
 
@@ -54,9 +53,8 @@ public class InteractableObject : MonoBehaviour
         {
             if (FlashlightController.Instance != null)
             {
-                FlashlightController.Instance.PickUpHelmet(); // Keeps your old flashlight system hook working
+                FlashlightController.Instance.PickUpHelmet();
 
-                // ◄ UPDATED TO OBJECTIVE 6: Crosses out Line6 for finding the Headlamp!
                 if (BookManager.Instance != null)
                 {
                     BookManager.Instance.CompleteObjective(6);
@@ -75,6 +73,23 @@ public class InteractableObject : MonoBehaviour
                 InventorySystem.Instance.AddToInventory(ItemName);
                 Destroy(gameObject);
             }
+        }
+    }
+    private void TriggerNotification()
+    {
+        if(NotificationManager.Instance != null)
+        {
+            string message = "";
+            
+                if(ItemName.ToLower() == "page")
+                {
+                    message = $"Picked up: Page {pageIndex + 1}!";
+                }
+                else
+                {
+                    message = $"Picked up: {ItemName}!";
+                }
+                NotificationManager.Instance.ShowNotification(message);
         }
     }
 
