@@ -7148,7 +7148,7 @@ MonoBehaviour:
   - {fileID: 1324407410}
   - {fileID: 244312512}
   - {fileID: 473471611}
-  timePerCard: 2
+  timePerCard: 1
   fadeSpeed: 2.5
 --- !u!114 &1658931862
 MonoBehaviour:

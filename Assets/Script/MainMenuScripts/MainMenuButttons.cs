@@ -1,10 +1,9 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections;
 
 public class MainMenu : MonoBehaviour
 {
-    [Header("UI Panels")]
+    [Header("UI Panels (Main Menu Scene Only)")]
     public GameObject optionsPanel;
     public GameObject mainButtonsGroup;
     public GameObject pauseMenuPanel;
@@ -13,7 +12,7 @@ public class MainMenu : MonoBehaviour
     public string mainMenuSceneName = "MainMenu";
     public string firstLevelName = "wodbeyl";
     public string gameOverSceneName = "GameOver";
-    public string gameWinSceneName = "Win"; // Updated strictly to "Win" as requested!
+    public string WinSceneName = "Win";
 
     public static bool isRetrying = false;
     public static bool isLongReturning = false;
@@ -23,24 +22,27 @@ public class MainMenu : MonoBehaviour
     void Awake()
     {
         string currentScene = SceneManager.GetActiveScene().name;
+        Time.timeScale = 1f;
 
-        // ONLY purge on GameOver or Win! Leave MainMenu alone
-        if (currentScene == gameOverSceneName || currentScene == gameWinSceneName)
+        if (currentScene == mainMenuSceneName)
         {
-            Time.timeScale = 1f;
+            isLongReturning = false;
+            isRetrying = false;
+
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
+            ValidateMainMenuEventSystem();
+        }
+        else if (currentScene == gameOverSceneName || currentScene == WinSceneName)
+        {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
 
             PurgePersistentObjects();
         }
-        else if (currentScene == mainMenuSceneName)
-        {
-            Time.timeScale = 1f;
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
 
-        // Safe-find the gameplay Canvas layer if it exists locally
+        // Locate layout elements safely without breaking scene management architectures
         GameObject canvasObj = GameObject.Find("Canvas");
         if (canvasObj != null)
         {
@@ -50,7 +52,7 @@ public class MainMenu : MonoBehaviour
                 gameplayCanvasGroup = canvasObj.AddComponent<CanvasGroup>();
             }
 
-            if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName || currentScene == gameWinSceneName)
+            if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName || currentScene == WinSceneName)
             {
                 SetCanvasVisible(false);
             }
@@ -60,7 +62,7 @@ public class MainMenu : MonoBehaviour
     void Update()
     {
         string currentScene = SceneManager.GetActiveScene().name;
-        if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName || currentScene == gameWinSceneName)
+        if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName || currentScene == WinSceneName)
         {
             if (Cursor.lockState != CursorLockMode.None)
             {
@@ -72,24 +74,54 @@ public class MainMenu : MonoBehaviour
 
     private void PurgePersistentObjects()
     {
+        // 1. Destroy player asset allocations
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null)
-        {
-            Destroy(playerObj);
-            Debug.Log("[System Clean] Persistent PLAYER destroyed for screen safety.");
-        }
+        if (playerObj != null) Destroy(playerObj);
 
         GameObject fallbackPlayer = GameObject.Find("PLAYER");
         if (fallbackPlayer != null) Destroy(fallbackPlayer);
 
+        // 2. Destroy persistent gameplay HUD canvas layouts safely
         GameObject gameplayCanvas = GameObject.Find("Canvas");
         if (gameplayCanvas != null && gameplayCanvas.gameObject != this.gameObject)
         {
             if (gameplayCanvas.transform.parent == null)
             {
                 Destroy(gameplayCanvas);
-                Debug.Log("[System Clean] Persistent gameplay HUD Canvas destroyed.");
+                Debug.Log("[System Clean] Persistent gameplay HUD Canvas purged.");
             }
+        }
+
+        // 3. Purge duplicate Input EventSystems
+        UnityEngine.EventSystems.EventSystem currentSystem = UnityEngine.EventSystems.EventSystem.current;
+        if (currentSystem != null)
+        {
+            Destroy(currentSystem.gameObject);
+        }
+        else
+        {
+            GameObject looseSystemObj = GameObject.Find("EventSystem");
+            if (looseSystemObj != null && looseSystemObj.transform.parent == null)
+            {
+                Destroy(looseSystemObj);
+            }
+        }
+    }
+
+    private void ValidateMainMenuEventSystem()
+    {
+        UnityEngine.EventSystems.EventSystem[] activeSystems = FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None);
+
+        if (activeSystems.Length > 1)
+        {
+            for (int i = 1; i < activeSystems.Length; i++)
+            {
+                if (activeSystems[i] != null) Destroy(activeSystems[i].gameObject);
+            }
+        }
+        else if (activeSystems.Length == 0)
+        {
+            new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(UnityEngine.EventSystems.StandaloneInputModule));
         }
     }
 
@@ -110,9 +142,10 @@ public class MainMenu : MonoBehaviour
         isLongReturning = false;
         Time.timeScale = 1f;
 
-        // Reset your intro state so it plays fresh from the menu buttons
-        StoryIntro.ResetIntroPlaystate();
+        // Clear tracking structures before bootstrapping your next instance setup loop
+        if (InventorySystem.Instance != null) InventorySystem.Instance.ResetInventoryDataState();
 
+        StoryIntro.ResetIntroPlaystate();
         SceneManager.LoadScene(firstLevelName);
     }
 
@@ -136,8 +169,25 @@ public class MainMenu : MonoBehaviour
     {
         Time.timeScale = 1f;
         isRetrying = false;
-        isLongReturning = false;
-        SceneManager.LoadScene(gameWinSceneName); // Loads the "Win" scene cleanly
+        isLongReturning = true;
+
+        DisableActiveGameplaySystems();
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        Debug.Log("[Victory] Transitioning to Win Scene cleanly.");
+        SceneManager.LoadScene(WinSceneName);
+    }
+
+    private void DisableActiveGameplaySystems()
+    {
+        if (SelectionManager.Instance != null) SelectionManager.Instance.enabled = false;
+        if (BookManager.Instance != null) BookManager.Instance.enabled = false;
+        if (InventorySystem.Instance != null) InventorySystem.Instance.enabled = false;
+
+        MonoBehaviour mainCamScript = Camera.main != null ? Camera.main.GetComponent<MonoBehaviour>() : null;
+        if (mainCamScript != null) mainCamScript.enabled = false;
     }
 
     public void RetryGame()
@@ -146,9 +196,9 @@ public class MainMenu : MonoBehaviour
         isRetrying = true;
         isLongReturning = false;
 
-        // Reset your intro state so it plays fresh when restarting after a game over
-        StoryIntro.ResetIntroPlaystate();
+        if (InventorySystem.Instance != null) InventorySystem.Instance.ResetInventoryDataState();
 
+        StoryIntro.ResetIntroPlaystate();
         SceneManager.LoadScene(mainMenuSceneName);
     }
 

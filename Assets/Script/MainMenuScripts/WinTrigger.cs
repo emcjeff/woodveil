@@ -1,10 +1,15 @@
 using UnityEngine;
+using UnityEngine.SceneManagement; // Added just in case we need a direct scene load fallback
 
 public class WinTrigger : MonoBehaviour
 {
     [Header("Victory Page Settings")]
     [Tooltip("The index array slot for the 6th page inside the book system list (Index 5 = Page 6)")]
     [SerializeField] private int requiredPageIndex = 5;
+
+    [Header("Scene Settings")]
+    [Tooltip("The exact name of your Victory scene in your Build Settings.")]
+    [SerializeField] private string winSceneName = "Win"; // Hardcoded to match your exact scene name: "Win"
 
     private void OnTriggerEnter(Collider other)
     {
@@ -15,6 +20,7 @@ public class WinTrigger : MonoBehaviour
             if (BookManager.Instance != null)
             {
                 // 3. Ask BookManager if Page 6 (index 5) has been picked up yet
+                // KEEPING THIS COMPLETELY UNTOUCHED: Player cannot rush to win!
                 bool hasSixthPage = BookManager.Instance.IsPageUnlocked(requiredPageIndex);
 
                 if (hasSixthPage)
@@ -43,11 +49,19 @@ public class WinTrigger : MonoBehaviour
 
         if (menuManager != null)
         {
+            // Try to pass the correct scene name string to your menu manager function if it accepts arguments
+            // Example: menuManager.GoToWinScene("Win");
             menuManager.GoToWinScene();
         }
         else
         {
-            Debug.LogError("[Win Trigger Setup Error] Could not find a MainMenu component inside this scene to trigger the Win scene swap!");
+            Debug.LogWarning("[Win Trigger] Could not find a MainMenu component inside this scene. Forcing a direct scene switch fallback to: " + winSceneName);
+
+            // BULLETPROOF FALLBACK: If MainMenu isn't passing the string correctly, 
+            // this direct line guarantees it loads your scene named "Win"!
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            SceneManager.LoadScene(winSceneName);
         }
     }
 
@@ -55,6 +69,9 @@ public class WinTrigger : MonoBehaviour
     {
         // If you have a custom UI text popup asset to show messages to the player, 
         // you can place your text display triggers here!
-        // Example: NotificationCanvas.Instance.ShowMessage("You need the 6th page to leave the cave.");
+        if (NotificationManager.Instance != null)
+        {
+            NotificationManager.Instance.ShowNotification("The exit remains sealed. You must locate the 6th page first!");
+        }
     }
 }

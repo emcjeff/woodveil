@@ -766,6 +766,7 @@ GameObject:
   - component: {fileID: 136828564}
   - component: {fileID: 136828565}
   - component: {fileID: 136828566}
+  - component: {fileID: 136828567}
   m_Layer: 0
   m_Name: Finish
   m_TagString: Untagged
@@ -927,6 +928,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WinTrigger
   requiredPageIndex: 5
+--- !u!65 &136828567
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136828558}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &177871539
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3642,7 +3664,7 @@ MonoBehaviour:
     type: 3}
   spawnPoint: {fileID: 2532655551785877615}
   enemyCount: 3
-  scatterRadius: 32.4
+  scatterRadius: 40
   respawnCooldown: 30
   spawnEffect: {fileID: 0}
   bossGate: {fileID: 1265875313}
@@ -4642,6 +4664,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1265875314}
+  - component: {fileID: 1265875315}
   m_Layer: 0
   m_Name: BossGatehohohoho
   m_TagString: Untagged
@@ -4672,6 +4695,27 @@ Transform:
   - {fileID: 1984858312}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1265875315
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265875313}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 59.08, y: 51.79, z: 3.24}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &1270220201
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7371,7 +7415,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1784222529241787509, guid: e5039c33dc210aa498c39b78a9ee416c,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4847709872744185076}
   m_SourcePrefab: {fileID: 100100000, guid: e5039c33dc210aa498c39b78a9ee416c, type: 3}
 --- !u!4 &4847709872744185074 stripped
 Transform:
@@ -7379,6 +7427,33 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 4847709872744185073}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &4847709872744185075 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1784222529241787509, guid: e5039c33dc210aa498c39b78a9ee416c,
+    type: 3}
+  m_PrefabInstance: {fileID: 4847709872744185073}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &4847709872744185076
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4847709872744185075}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.9999999, y: 1.9999999, z: 1.9999999}
+  m_Center: {x: 0, y: 0, z: 0.000000059604645}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

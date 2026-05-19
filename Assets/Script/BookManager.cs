@@ -54,21 +54,36 @@ public class BookManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // Setup base page status safely at the earliest lifecycle frame
-        InitializeBasePages();
+        // FIX: Completely reset game tracking milestones so items spawn on level re-entry
+        WipeAndResetProgressionSaveData();
     }
 
-    private void InitializeBasePages()
+    /// <summary>
+    /// Resets all global quest thresholds and flags to let progression restart fresh.
+    /// </summary>
+    public void WipeAndResetProgressionSaveData()
     {
-        if (unlockedPages == null || unlockedPages.Count == 0)
+        hasBook = false;
+        isBookOpen = false;
+        isIntroPaperActive = false;
+        hasShownIntroPaper = false;
+
+        currentSlimeKills = 0;
+        currentSpiderKills = 0;
+
+        for (int i = 0; i < completedObjectives.Length; i++)
         {
-            unlockedPages = new List<bool>();
-            // Pre-populate slots. Let's give it 10 slots by default to match objectives
-            for (int i = 0; i < 10; i++)
-            {
-                unlockedPages.Add(i == 0); // Index 0 (Page 1) is unlocked out of the box!
-            }
+            completedObjectives[i] = false;
         }
+
+        // Re-initialize lists clean
+        unlockedPages = new List<bool>();
+        for (int i = 0; i < 10; i++)
+        {
+            unlockedPages.Add(i == 0); // Re-grant only Page 1 by default
+        }
+
+        Debug.Log("[Quest Reset] Book objectives, tracking parameters, and map kill-counters cleared.");
     }
 
     private void OnEnable() { SceneManager.sceneLoaded += OnSceneLoaded; }
@@ -101,13 +116,16 @@ public class BookManager : MonoBehaviour
             FindAndRefreshLines();
         }
 
-        if (hasBook && !isBookOpen && !InventorySystem.Instance.isOpen && !CraftingSystem.Instance.isOpen)
+        // Safely evaluate inventory status reference state
+        bool isInventoryActive = (InventorySystem.Instance != null && InventorySystem.Instance.isOpen);
+
+        if (hasBook && !isBookOpen && !isInventoryActive && !(CraftingSystem.Instance != null && CraftingSystem.Instance.isOpen))
         {
-            BookPrompt.SetActive(true);
+            if (BookPrompt != null) BookPrompt.SetActive(true);
         }
         else
         {
-            BookPrompt.SetActive(false);
+            if (BookPrompt != null) BookPrompt.SetActive(false);
         }
 
         if (Input.GetKeyDown(KeyCode.E) && hasBook && !isIntroPaperActive)
@@ -122,7 +140,7 @@ public class BookManager : MonoBehaviour
         if (introMissionPaper == null) return;
         hasShownIntroPaper = true;
         isIntroPaperActive = true;
-        bookUI.SetActive(false);
+        if (bookUI != null) bookUI.SetActive(false);
         introMissionPaper.SetActive(true);
 
         Button closeButton = introMissionPaper.GetComponentInChildren<Button>();
@@ -178,10 +196,10 @@ public class BookManager : MonoBehaviour
 
     public void OpenBook()
     {
+        if (bookUI == null) return;
         bookUI.SetActive(true);
         isBookOpen = true;
 
-        // Tell the visual layout rendering module to draw itself using our data
         book pageScript = bookUI.GetComponentInChildren<book>(true);
         if (pageScript != null)
         {
@@ -197,6 +215,7 @@ public class BookManager : MonoBehaviour
 
     public void CloseBook()
     {
+        if (bookUI == null) return;
         book pageScript = bookUI.GetComponentInChildren<book>(true);
         if (pageScript != null) pageScript.ResetState();
 
@@ -229,10 +248,9 @@ public class BookManager : MonoBehaviour
         return false;
     }
 
-    // FIXED: Reads data directly from our safe local data array instance layout seamlessly!
     public bool IsPageUnlocked(int pageIndex)
     {
-        InitializeBasePages();
+        if (unlockedPages == null || unlockedPages.Count == 0) return pageIndex == 0;
         if (pageIndex >= 0 && pageIndex < unlockedPages.Count)
         {
             return unlockedPages[pageIndex];
@@ -242,24 +260,24 @@ public class BookManager : MonoBehaviour
 
     public void UnlockPageGlobal(int pageIndex)
     {
-        InitializeBasePages();
-        if (pageIndex >= 0 && pageIndex < unlockedPages.Count)
-        {
-            unlockedPages[pageIndex] = true;
-            Debug.Log($"[Global Book System] Page Index {pageIndex} marked unlocked!");
+        if (unlockedPages == null || pageIndex < 0 || pageIndex >= unlockedPages.Count) return;
 
-            // If the UI happens to be active, force recalculate it visually
+        unlockedPages[pageIndex] = true;
+        Debug.Log($"[Global Book System] Page Index {pageIndex} marked unlocked!");
+
+        if (bookUI != null)
+        {
             book pageScript = bookUI.GetComponentInChildren<book>(true);
             if (pageScript != null) pageScript.SyncAndRenderLayout();
-
-            // Notify world items to check their states right now
-            ProgressionGate[] gates = FindObjectsByType<ProgressionGate>(FindObjectsSortMode.None);
-            foreach (ProgressionGate gate in gates) gate.EvaluateGate();
         }
+
+        ProgressionGate[] gates = FindObjectsByType<ProgressionGate>(FindObjectsSortMode.None);
+        foreach (ProgressionGate gate in gates) gate.EvaluateGate();
     }
 
     private void FindAndRefreshLines()
     {
+        if (bookUI == null) return;
         Transform[] allChildren = bookUI.GetComponentsInChildren<Transform>(true);
         objectiveCrossOutLines.Clear();
         Dictionary<string, GameObject> foundLines = new Dictionary<string, GameObject>();
@@ -281,7 +299,7 @@ public class BookManager : MonoBehaviour
 
     private void CheckMasterRewardUnlock()
     {
-        if (BowController.Instance != null)
+        if (BowController.Instance != null && completedObjectives.Length > 8)
         {
             BowController.Instance.isDoubleShotUnlocked = (completedObjectives[6] && completedObjectives[7] && completedObjectives[8]);
         }
