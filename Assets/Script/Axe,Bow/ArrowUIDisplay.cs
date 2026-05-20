@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class ArrowUIDisplay : MonoBehaviour
 {
@@ -11,24 +12,68 @@ public class ArrowUIDisplay : MonoBehaviour
     [SerializeField] private GameObject uiContainer;
 
     [Header("Settings")]
-    [Tooltip("The exact item name used inside your inventory slots data for the arrows")]
+    [Tooltip("The default fallback item name inside your inventory slots data")]
     [SerializeField] private string arrowItemName = "ArrowUI";
 
     private bool isSubscribed = false;
 
+    private void Awake()
+    {
+        // Hook into the scene manager event system to heal data tracks on winning, retrying, or scene loading
+        SceneManager.sceneLoaded += OnSceneLoadedLayoutHeal;
+    }
+
+    private void OnDestroy()
+    {
+        // Clean up event footprints out of engine memory
+        SceneManager.sceneLoaded -= OnSceneLoadedLayoutHeal;
+        UnsubscribeFromInventory();
+    }
+
     private void Start()
+    {
+        FindLocalReferences();
+        TrySubscribe();
+    }
+
+    private void OnSceneLoadedLayoutHeal(Scene scene, LoadSceneMode mode)
+    {
+        string sceneName = scene.name;
+
+        // If we hit menu, game over, or win screens, cleanly clear tracking states
+        if (sceneName == "MainMenu" || sceneName == "GameOver" || sceneName == "Win")
+        {
+            UnsubscribeFromInventory();
+            SetUIElementActive(false);
+            return;
+        }
+
+        // Re-locate components in the new scene layout context
+        FindLocalReferences();
+
+        // Force a clean resubscription to the brand new active Inventory instance frame
+        UnsubscribeFromInventory();
+        TrySubscribe();
+    }
+
+    private void FindLocalReferences()
     {
         if (arrowCountText == null)
         {
             arrowCountText = GetComponent<TextMeshProUGUI>();
         }
 
+        // Fallback search if the reference was destroyed during a scene transition swap
         if (uiContainer == null)
         {
-            uiContainer = this.gameObject;
-        }
+            // First try to look for the explicit ArrowAmmo container object in the scene hierarchy
+            uiContainer = GameObject.Find("ArrowAmmo");
 
-        TrySubscribe();
+            if (uiContainer == null)
+            {
+                uiContainer = this.gameObject;
+            }
+        }
     }
 
     private void Update()
@@ -44,7 +89,7 @@ public class ArrowUIDisplay : MonoBehaviour
 
     private void TrySubscribe()
     {
-        if (InventorySystem.Instance != null)
+        if (InventorySystem.Instance != null && !isSubscribed)
         {
             InventorySystem.Instance.OnInventoryChanged += RefreshArrowCounter;
             isSubscribed = true;
@@ -52,12 +97,13 @@ public class ArrowUIDisplay : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
+    private void UnsubscribeFromInventory()
     {
         if (isSubscribed && InventorySystem.Instance != null)
         {
             InventorySystem.Instance.OnInventoryChanged -= RefreshArrowCounter;
         }
+        isSubscribed = false;
     }
 
     private void EvaluateVisibilityConditions()
@@ -68,8 +114,6 @@ public class ArrowUIDisplay : MonoBehaviour
             SetUIElementActive(false);
             return;
         }
-
-        // FIXED: Removed the BookManager condition entirely!
 
         // Check Bow condition (Checks BOTH "Bow" and "BowUI" so it never breaks!)
         int bowCount = InventorySystem.Instance.GetTotalItemCount("Bow");
@@ -84,8 +128,6 @@ public class ArrowUIDisplay : MonoBehaviour
 
     private void SetUIElementActive(bool state)
     {
-        // If we are turning off the script's OWN GameObject, its Update() loop stops running!
-        // To fix this, we turn off the Text component renderer instead if it's pointing to itself.
         if (uiContainer == this.gameObject)
         {
             if (arrowCountText != null && arrowCountText.enabled != state)
@@ -95,7 +137,6 @@ public class ArrowUIDisplay : MonoBehaviour
         }
         else
         {
-            // If it's a separate container panel, we can safely flip its active state
             if (uiContainer != null && uiContainer.activeSelf != state)
             {
                 uiContainer.SetActive(state);
@@ -107,7 +148,13 @@ public class ArrowUIDisplay : MonoBehaviour
     {
         if (InventorySystem.Instance == null || arrowCountText == null) return;
 
-        int totalArrows = InventorySystem.Instance.GetTotalItemCount(arrowItemName);
+        // BULLETPROOF CHECK: Scan for BOTH naming conventions ("Arrow" vs "ArrowUI")
+        int defaultArrows = InventorySystem.Instance.GetTotalItemCount(arrowItemName);
+        int fallbackArrows = InventorySystem.Instance.GetTotalItemCount("Arrow");
+
+        // Sum them up or choose the maximum found value
+        int totalArrows = Mathf.Max(defaultArrows, fallbackArrows);
+
         arrowCountText.text = totalArrows.ToString();
     }
 }

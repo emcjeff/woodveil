@@ -5,12 +5,11 @@ using System.Collections;
 public class GameOverAutoReturn : MonoBehaviour
 {
     [Header("Return Settings")]
-    [Tooltip("How long to wait before automatically jumping back to the Main Menu scene.")]
+    [Tooltip("How long to wait inside this scene to clear data structures before jumping back to Main Menu.")]
     public float delay = 2.5f;
 
     void Start()
     {
-        // If the MainMenu script says "isLongReturning", start the timer
         if (MainMenu.isLongReturning)
         {
             StartCoroutine(ReturnSequence());
@@ -19,24 +18,15 @@ public class GameOverAutoReturn : MonoBehaviour
 
     IEnumerator ReturnSequence()
     {
+        // 1. Wait out the cleaning delay behind the dark curtain overlay
         yield return new WaitForSecondsRealtime(delay);
 
-        // Reset the control flag passport safely
+        // Reset the routing flag passport safely
         MainMenu.isLongReturning = false;
 
-        Debug.Log("[Auto Return] Triggering fresh reload of the core Main Menu scene workflow...");
+        Debug.Log("[Auto Return] Purge delay completed. Loading true Main Menu layout scene...");
 
-        // FIX: Find the MainMenu manager component in the scene if it exists to call its clean routing method
-        MainMenu menuManager = FindAnyObjectByType<MainMenu>();
-        if (menuManager != null)
-        {
-            // This guarantees it uses whatever exact string name variable your MainMenu manager uses!
-            menuManager.ReturnToMainMenu();
-        }
-        else
-        {
-            // Bulletproof fallback if no manager component is awake in the scene space
-            SceneManager.LoadScene("MainMenu");
-        }
+        // 2. Load the MainMenu scene. (When it loads, it will automatically destroy this script safely)
+        SceneManager.LoadScene("MainMenu");
     }
 }

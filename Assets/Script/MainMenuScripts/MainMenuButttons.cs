@@ -33,6 +33,14 @@ public class MainMenu : MonoBehaviour
             Cursor.visible = true;
 
             ValidateMainMenuEventSystem();
+
+            // SUCCESS HAND-OFF: The Main Menu has fully awoken!
+            // Dismiss the persistent loading screen child panel using your inspector delay time.
+            if (LoadingScreenOverlay.Instance != null)
+            {
+                Debug.Log("[MainMenu Awake] Main Menu scene loaded. Directing LoadingScreenOverlay to hide...");
+                LoadingScreenOverlay.Instance.HideWithDelay();
+            }
         }
         else if (currentScene == gameOverSceneName || currentScene == WinSceneName)
         {
@@ -142,7 +150,6 @@ public class MainMenu : MonoBehaviour
         isLongReturning = false;
         Time.timeScale = 1f;
 
-        // Clear tracking structures before bootstrapping your next instance setup loop
         if (InventorySystem.Instance != null) InventorySystem.Instance.ResetInventoryDataState();
 
         StoryIntro.ResetIntroPlaystate();
@@ -153,8 +160,15 @@ public class MainMenu : MonoBehaviour
     {
         Time.timeScale = 1f;
         isRetrying = false;
-        isLongReturning = false;
-        SceneManager.LoadScene(mainMenuSceneName);
+        isLongReturning = true; // Set to true to route cleanly through our trash dump scene context
+
+        // Draw the curtain mask over the view window before changing scene files
+        if (LoadingScreenOverlay.Instance != null)
+        {
+            LoadingScreenOverlay.Instance.Show();
+        }
+
+        SceneManager.LoadScene(gameOverSceneName);
     }
 
     public void LongReturnToMenu()
@@ -162,6 +176,12 @@ public class MainMenu : MonoBehaviour
         Time.timeScale = 1f;
         isRetrying = false;
         isLongReturning = true;
+
+        if (LoadingScreenOverlay.Instance != null)
+        {
+            LoadingScreenOverlay.Instance.Show();
+        }
+
         SceneManager.LoadScene(gameOverSceneName);
     }
 
