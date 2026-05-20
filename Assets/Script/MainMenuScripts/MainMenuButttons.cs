@@ -17,16 +17,38 @@ public class MainMenu : MonoBehaviour
     public static bool isRetrying = false;
     public static bool isLongReturning = false;
 
+    // GLOBAL STATUS STATE TRACKER
+    public static bool cameFromMenu = true;
+
     private CanvasGroup gameplayCanvasGroup;
 
     void Awake()
     {
-        string currentScene = SceneManager.GetActiveScene().name;
+        // FORCE time to unfreeze immediately before evaluating any transitions
         Time.timeScale = 1f;
+
+        string currentScene = SceneManager.GetActiveScene().name;
+
+        // If the player lands in any menu structure state context, firmly lock down the popup flag
+        if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName || currentScene == WinSceneName)
+        {
+            cameFromMenu = true;
+            Debug.Log($"[MainMenu Awake] State context flagged: cameFromMenu = {cameFromMenu} via scene: {currentScene}");
+        }
 
         if (currentScene == mainMenuSceneName)
         {
+            // Reset transition cycles completely upon successfully landing in the Main Menu
             isLongReturning = false;
+
+            // FAST RE-ROUTE FOR RETRIES
+            if (isRetrying)
+            {
+                Debug.Log("[MainMenu Awake] Retry flag confirmed active! Bypassing landing choices and launching back into stage...");
+                PlayGame();
+                return;
+            }
+
             isRetrying = false;
 
             Cursor.lockState = CursorLockMode.None;
@@ -34,11 +56,9 @@ public class MainMenu : MonoBehaviour
 
             ValidateMainMenuEventSystem();
 
-            // SUCCESS HAND-OFF: The Main Menu has fully awoken!
-            // Dismiss the persistent loading screen child panel using your inspector delay time.
             if (LoadingScreenOverlay.Instance != null)
             {
-                Debug.Log("[MainMenu Awake] Main Menu scene loaded. Directing LoadingScreenOverlay to hide...");
+                Debug.Log("[MainMenu Awake] Standard Main Menu arrival. Signaling LoadingScreenOverlay curtain drop...");
                 LoadingScreenOverlay.Instance.HideWithDelay();
             }
         }
@@ -48,6 +68,14 @@ public class MainMenu : MonoBehaviour
             Cursor.visible = true;
 
             PurgePersistentObjects();
+
+            // AUTOMATIC BOUNCE TO MAIN MENU FOR RETRIES / RETURNS
+            if (isRetrying || isLongReturning)
+            {
+                Debug.Log($"[Scene Handler] Active transition loop running (Retry={isRetrying}, LongReturn={isLongReturning}). Shifting scene payload to Main Menu...");
+                SceneManager.LoadScene(mainMenuSceneName);
+                return; // Stop running Awake processing loop for this frame
+            }
         }
 
         // Locate layout elements safely without breaking scene management architectures
@@ -82,14 +110,12 @@ public class MainMenu : MonoBehaviour
 
     private void PurgePersistentObjects()
     {
-        // 1. Destroy player asset allocations
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null) Destroy(playerObj);
 
         GameObject fallbackPlayer = GameObject.Find("PLAYER");
         if (fallbackPlayer != null) Destroy(fallbackPlayer);
 
-        // 2. Destroy persistent gameplay HUD canvas layouts safely
         GameObject gameplayCanvas = GameObject.Find("Canvas");
         if (gameplayCanvas != null && gameplayCanvas.gameObject != this.gameObject)
         {
@@ -100,19 +126,12 @@ public class MainMenu : MonoBehaviour
             }
         }
 
-        // 3. Purge duplicate Input EventSystems
+        // FIXED: Do not destroy the event system if we are instantly reloading the main menu, 
+        // otherwise the new scene will lose input detection capabilities.
         UnityEngine.EventSystems.EventSystem currentSystem = UnityEngine.EventSystems.EventSystem.current;
-        if (currentSystem != null)
+        if (currentSystem != null && !isLongReturning && !isRetrying)
         {
             Destroy(currentSystem.gameObject);
-        }
-        else
-        {
-            GameObject looseSystemObj = GameObject.Find("EventSystem");
-            if (looseSystemObj != null && looseSystemObj.transform.parent == null)
-            {
-                Destroy(looseSystemObj);
-            }
         }
     }
 
@@ -146,11 +165,13 @@ public class MainMenu : MonoBehaviour
     public void PlayGame()
     {
         SetCanvasVisible(true);
-        isRetrying = false;
-        isLongReturning = false;
         Time.timeScale = 1f;
 
         if (InventorySystem.Instance != null) InventorySystem.Instance.ResetInventoryDataState();
+
+        cameFromMenu = true;
+        isRetrying = false;
+        isLongReturning = false;
 
         StoryIntro.ResetIntroPlaystate();
         SceneManager.LoadScene(firstLevelName);
@@ -158,17 +179,23 @@ public class MainMenu : MonoBehaviour
 
     public void ReturnToMainMenu()
     {
+        // Unfreeze time before changing scenes so UI functions don't get stuck!
         Time.timeScale = 1f;
         isRetrying = false;
-        isLongReturning = true; // Set to true to route cleanly through our trash dump scene context
+        isLongReturning = true;
 
-        // Draw the curtain mask over the view window before changing scene files
         if (LoadingScreenOverlay.Instance != null)
         {
             LoadingScreenOverlay.Instance.Show();
         }
 
-        SceneManager.LoadScene(gameOverSceneName);
+        // Clean slate reset for global progression managers if leaving the stage run
+        if (BookManager.Instance != null)
+        {
+            BookManager.Instance.WipeAndResetProgressionSaveData();
+        }
+
+        SceneManager.LoadScene(mainMenuSceneName);
     }
 
     public void LongReturnToMenu()
@@ -182,7 +209,7 @@ public class MainMenu : MonoBehaviour
             LoadingScreenOverlay.Instance.Show();
         }
 
-        SceneManager.LoadScene(gameOverSceneName);
+        SceneManager.LoadScene(mainMenuSceneName);
     }
 
     public void GoToWinScene()
@@ -216,10 +243,12 @@ public class MainMenu : MonoBehaviour
         isRetrying = true;
         isLongReturning = false;
 
-        if (InventorySystem.Instance != null) InventorySystem.Instance.ResetInventoryDataState();
+        if (LoadingScreenOverlay.Instance != null)
+        {
+            LoadingScreenOverlay.Instance.Show();
+        }
 
-        StoryIntro.ResetIntroPlaystate();
-        SceneManager.LoadScene(mainMenuSceneName);
+        SceneManager.LoadScene(gameOverSceneName);
     }
 
     public void ResumeGame()

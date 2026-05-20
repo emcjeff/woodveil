@@ -123,8 +123,10 @@ public class InventorySystem : MonoBehaviour
         if (inventoryScreenUI == null) return;
 
         bool bookOpen = (BookManager.Instance != null && BookManager.Instance.isBookOpen);
+        bool craftingOpen = (CraftingSystem.Instance != null && CraftingSystem.Instance.isOpen);
 
-        if (Input.GetKeyDown(KeyCode.I) && !bookOpen)
+        // CHANGED: Listens for KeyCode.Tab and respects existing UI flags
+        if (Input.GetKeyDown(KeyCode.Tab) && !bookOpen && !craftingOpen)
         {
             if (!isOpen) OpenInventory();
             else CloseInventory();

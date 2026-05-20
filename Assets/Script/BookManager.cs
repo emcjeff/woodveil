@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System.Collections;
 
 public class BookManager : MonoBehaviour
 {
@@ -17,7 +18,7 @@ public class BookManager : MonoBehaviour
     public GameObject bookUI;
     public GameObject BookPrompt;
 
-    [Header("One-Time Spawn Paper")]
+    [Header("One-Time Spawn Paper (Mission Panel)")]
     [SerializeField] private GameObject introMissionPaper;
 
     [Header("Mission Customization")]
@@ -42,6 +43,9 @@ public class BookManager : MonoBehaviour
     private List<GameObject> objectiveCrossOutLines = new List<GameObject>();
     private bool isIntroPaperActive = false;
     private static bool hasShownIntroPaper = false;
+
+    // Track countdown coroutine safely
+    private Coroutine introPaperTimerCoroutine;
 
     private void Awake()
     {
@@ -88,6 +92,13 @@ public class BookManager : MonoBehaviour
     {
         CloseBook();
 
+        // Safely kill any leftover coroutines running through scene reload sequences
+        if (introPaperTimerCoroutine != null)
+        {
+            StopCoroutine(introPaperTimerCoroutine);
+            introPaperTimerCoroutine = null;
+        }
+
         if (scene.name == "wodbeyl" && !hasShownIntroPaper)
         {
             Invoke("ShowIntroMissionPaper", 0.1f);
@@ -131,7 +142,13 @@ public class BookManager : MonoBehaviour
 
     public void ShowIntroMissionPaper()
     {
-        if (introMissionPaper == null) return;
+        if (introMissionPaper == null)
+        {
+            // Fallback find if persistent reference drops
+            introMissionPaper = GameObject.Find("MissionPanel");
+            if (introMissionPaper == null) return;
+        }
+
         hasShownIntroPaper = true;
         isIntroPaperActive = true;
         if (bookUI != null) bookUI.SetActive(false);
@@ -143,18 +160,39 @@ public class BookManager : MonoBehaviour
             closeButton.onClick.RemoveAllListeners();
             closeButton.onClick.AddListener(CloseIntroMissionPaper);
         }
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         Time.timeScale = 0f;
+
+        // Fire 10-second real-world duration auto-hide countdown
+        if (introPaperTimerCoroutine != null) StopCoroutine(introPaperTimerCoroutine);
+        introPaperTimerCoroutine = StartCoroutine(AutoCloseIntroPaperRoutine());
+    }
+
+    private IEnumerator AutoCloseIntroPaperRoutine()
+    {
+        yield return new WaitForSecondsRealtime(10f);
+        Debug.Log("[BookManager] 10 seconds elapsed. Auto-hiding mission intro panel.");
+        CloseIntroMissionPaper();
     }
 
     public void CloseIntroMissionPaper()
     {
+        if (introPaperTimerCoroutine != null)
+        {
+            StopCoroutine(introPaperTimerCoroutine);
+            introPaperTimerCoroutine = null;
+        }
+
         if (introMissionPaper != null) introMissionPaper.SetActive(false);
         isIntroPaperActive = false;
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         Time.timeScale = 1f;
+
+        Debug.Log("[BookManager] Intro paper closed. Game unpaused, cursor relocked.");
     }
 
     public void CollectBook()
@@ -295,13 +333,11 @@ public class BookManager : MonoBehaviour
     {
         if (BowController.Instance != null)
         {
-            // Double shot requires Line 7, Line 8, and Line 9 (indices 6, 7, 8)
             if (completedObjectives.Length > 8)
             {
                 BowController.Instance.isDoubleShotUnlocked = (completedObjectives[6] && completedObjectives[7] && completedObjectives[8]);
             }
 
-            // REWARD UNLOCK: Damage Boost unlocks when Line 5 (Index 4) is completed!
             if (completedObjectives.Length > 4)
             {
                 BowController.Instance.isDamageBoostUnlocked = completedObjectives[4];

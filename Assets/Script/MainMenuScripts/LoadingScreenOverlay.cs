@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class LoadingScreenOverlay : MonoBehaviour
 {
@@ -18,7 +19,6 @@ public class LoadingScreenOverlay : MonoBehaviour
 
     private void Awake()
     {
-        // Singleton pattern to prevent the accidental double-suicide bug
         if (instance != null && instance != this)
         {
             Destroy(gameObject);
@@ -28,13 +28,34 @@ public class LoadingScreenOverlay : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // Start hidden by default when the game boots up
         if (visualPanel != null) visualPanel.SetActive(false);
     }
 
-    /// <summary>
-    /// Shows the loading curtain overlay overlay.
-    /// </summary>
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "wodbeyl")
+        {
+            Debug.Log("[LoadingScreenOverlay] 'wodbeyl' level loaded. Processing safe transition handshakes.");
+
+            // Clean up old coroutines instantly on load sequence completion
+            if (hideRoutine != null)
+            {
+                StopCoroutine(hideRoutine);
+            }
+            hideRoutine = StartCoroutine(WaitAndHideRoutine());
+        }
+    }
+
     public void Show()
     {
         if (hideRoutine != null)
@@ -49,9 +70,6 @@ public class LoadingScreenOverlay : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Starts a timed delay sequence before turning off the loading screen panel.
-    /// </summary>
     public void HideWithDelay()
     {
         if (hideRoutine != null)
@@ -61,9 +79,6 @@ public class LoadingScreenOverlay : MonoBehaviour
         hideRoutine = StartCoroutine(WaitAndHideRoutine());
     }
 
-    /// <summary>
-    /// Instantly forces the loading screen overlay to hide without waiting.
-    /// </summary>
     public void InstantHide()
     {
         if (hideRoutine != null)
@@ -80,7 +95,11 @@ public class LoadingScreenOverlay : MonoBehaviour
 
     private IEnumerator WaitAndHideRoutine()
     {
-        // Uses unscaled real system time clock cycles so it works even if Time.timeScale == 0
+        // 1. First clear structural state tracks instantly so Awake updates read it correctly
+        MainMenu.isRetrying = false;
+        MainMenu.isLongReturning = false;
+
+        // 2. Wait out the visual presentation layout delay safely
         yield return new WaitForSecondsRealtime(loadingScreenDuration);
 
         if (visualPanel != null)
@@ -88,6 +107,7 @@ public class LoadingScreenOverlay : MonoBehaviour
             visualPanel.SetActive(false);
         }
 
+        Debug.Log("[LoadingScreenOverlay] Fade-out complete. Control configurations released.");
         hideRoutine = null;
     }
 }

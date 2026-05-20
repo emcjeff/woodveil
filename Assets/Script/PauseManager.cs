@@ -38,9 +38,6 @@ public class PauseManager : MonoBehaviour
         FindActiveSceneOptionsPanel(scene.name);
     }
 
-    /// <summary>
-    /// Searches for the options panel UI assets inside the active scene layout.
-    /// </summary>
     private void FindActiveSceneOptionsPanel(string sceneName)
     {
         isPaused = false;
@@ -55,7 +52,6 @@ public class PauseManager : MonoBehaviour
         GameObject canvasObj = GameObject.Find("Canvas");
         if (canvasObj != null)
         {
-            // Matches your options UI sub-panel naming structure
             Transform targetPanel = canvasObj.transform.Find("Options Panel");
             if (targetPanel != null)
             {
@@ -65,7 +61,6 @@ public class PauseManager : MonoBehaviour
             }
             else
             {
-                // Fallback check: look through root level assets
                 optionsPanel = GameObject.Find("Options Panel");
                 if (optionsPanel != null) optionsPanel.SetActive(false);
             }
@@ -77,8 +72,21 @@ public class PauseManager : MonoBehaviour
         // Do not intercept input keys if there are no UI panels attached to toggle
         if (optionsPanel == null) return;
 
-        if (Input.GetKeyDown(KeyCode.Q))
+        // CHANGED: Listens for KeyCode.Escape
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
+            // SMART ESCAPE LOGIC: If a gameplay menu is open, don't pause—just let the player use Esc to close it!
+            bool isInventoryOpen = (InventorySystem.Instance != null && InventorySystem.Instance.isOpen);
+            bool isCraftingOpen = (CraftingSystem.Instance != null && CraftingSystem.Instance.isOpen);
+            bool isBookOpen = (BookManager.Instance != null && BookManager.Instance.isBookOpen);
+
+            if (isInventoryOpen || isCraftingOpen || isBookOpen)
+            {
+                Debug.Log("[Pause Manager] Escape pressed while a UI window was active. Letting system layers handle the close request instead of pausing.");
+                return;
+            }
+
+            // Normal Pause/Resume processing
             if (isPaused) Resume();
             else Pause();
         }
@@ -105,7 +113,7 @@ public class PauseManager : MonoBehaviour
         Time.timeScale = 1f;
         isPaused = false;
 
-        // Check inventory, crafting, and book states safely before managing cursor states
+        // Check layout overlays cleanly before committing lock state profiles
         bool isInventoryOpen = (InventorySystem.Instance != null && InventorySystem.Instance.isOpen);
         bool isCraftingOpen = (CraftingSystem.Instance != null && CraftingSystem.Instance.isOpen);
         bool isBookOpen = (BookManager.Instance != null && BookManager.Instance.isBookOpen);
@@ -130,6 +138,7 @@ public class PauseManager : MonoBehaviour
     public void GoToMainMenu()
     {
         Time.timeScale = 1f;
+        isPaused = false;
         SceneManager.LoadScene("MainMenu");
     }
 }

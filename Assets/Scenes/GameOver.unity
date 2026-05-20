@@ -794,7 +794,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 2109587050}
         m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
-        m_MethodName: RetryGame
+        m_MethodName: ReturnToMainMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3165,6 +3165,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2109587051}
   - component: {fileID: 2109587050}
+  - component: {fileID: 2109587052}
   m_Layer: 0
   m_Name: UiManager
   m_TagString: Untagged
@@ -3190,7 +3191,7 @@ MonoBehaviour:
   mainMenuSceneName: MainMenu
   firstLevelName: wodbeyl
   gameOverSceneName: GameOver
-  gameWinSceneName: WIn
+  WinSceneName: Win
 --- !u!4 &2109587051
 Transform:
   m_ObjectHideFlags: 0
@@ -3206,6 +3207,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2109587052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109587049}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82e616febe81c4c44a1a8107d7e9f075, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RetryButtonHandler
 --- !u!1 &2135669172
 GameObject:
   m_ObjectHideFlags: 0
