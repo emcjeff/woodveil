@@ -54,13 +54,9 @@ public class BookManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // FIX: Completely reset game tracking milestones so items spawn on level re-entry
         WipeAndResetProgressionSaveData();
     }
 
-    /// <summary>
-    /// Resets all global quest thresholds and flags to let progression restart fresh.
-    /// </summary>
     public void WipeAndResetProgressionSaveData()
     {
         hasBook = false;
@@ -76,11 +72,10 @@ public class BookManager : MonoBehaviour
             completedObjectives[i] = false;
         }
 
-        // Re-initialize lists clean
         unlockedPages = new List<bool>();
         for (int i = 0; i < 10; i++)
         {
-            unlockedPages.Add(i == 0); // Re-grant only Page 1 by default
+            unlockedPages.Add(i == 0);
         }
 
         Debug.Log("[Quest Reset] Book objectives, tracking parameters, and map kill-counters cleared.");
@@ -116,7 +111,6 @@ public class BookManager : MonoBehaviour
             FindAndRefreshLines();
         }
 
-        // Safely evaluate inventory status reference state
         bool isInventoryActive = (InventorySystem.Instance != null && InventorySystem.Instance.isOpen);
 
         if (hasBook && !isBookOpen && !isInventoryActive && !(CraftingSystem.Instance != null && CraftingSystem.Instance.isOpen))
@@ -299,9 +293,19 @@ public class BookManager : MonoBehaviour
 
     private void CheckMasterRewardUnlock()
     {
-        if (BowController.Instance != null && completedObjectives.Length > 8)
+        if (BowController.Instance != null)
         {
-            BowController.Instance.isDoubleShotUnlocked = (completedObjectives[6] && completedObjectives[7] && completedObjectives[8]);
+            // Double shot requires Line 7, Line 8, and Line 9 (indices 6, 7, 8)
+            if (completedObjectives.Length > 8)
+            {
+                BowController.Instance.isDoubleShotUnlocked = (completedObjectives[6] && completedObjectives[7] && completedObjectives[8]);
+            }
+
+            // REWARD UNLOCK: Damage Boost unlocks when Line 5 (Index 4) is completed!
+            if (completedObjectives.Length > 4)
+            {
+                BowController.Instance.isDamageBoostUnlocked = completedObjectives[4];
+            }
         }
     }
 }

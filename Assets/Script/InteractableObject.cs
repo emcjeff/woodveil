@@ -7,7 +7,7 @@ public class InteractableObject : MonoBehaviour
 
     public bool playerInRange;
 
-    [Tooltip("Set this to 'Book', 'Page', 'Headlamp', 'Stone', etc.")]
+    [Tooltip("Set this to 'Book', 'Page', 'Headlamp', 'Bow', 'Stone', etc.")]
     public string ItemName;
 
     [Header("Page Settings")]
@@ -20,10 +20,7 @@ public class InteractableObject : MonoBehaviour
     {
         if (type == InteractionType.ObservationOnly) return;
 
-        // -------------------------------------------------------------
         // NOTIFICATION TRIGGER
-        // One clean check handles every item type before destruction!
-        // -------------------------------------------------------------
         if (NotificationManager.Instance != null)
         {
             if (ItemName.ToLower() == "page")
@@ -35,7 +32,6 @@ public class InteractableObject : MonoBehaviour
                 NotificationManager.Instance.ShowNotification($"Picked up {ItemName}!");
             }
         }
-        // -------------------------------------------------------------
 
         // 1. SPECIAL LOGIC: The Book
         if (ItemName.ToLower() == "book")
@@ -53,10 +49,8 @@ public class InteractableObject : MonoBehaviour
         {
             if (BookManager.Instance != null)
             {
-                // Core Fix: Send tracking instruction to global data container directly!
                 BookManager.Instance.UnlockPageGlobal(pageIndex);
                 Debug.Log("Successfully unlocked global Page index: " + pageIndex);
-
                 Destroy(gameObject);
                 return;
             }
@@ -83,7 +77,7 @@ public class InteractableObject : MonoBehaviour
             }
         }
 
-        // 4. REGULAR ITEMS
+        // 4. REGULAR ITEMS (The Bow falls back here cleanly)
         if (InventorySystem.Instance != null)
         {
             if (!InventorySystem.Instance.CheckIfFull())
@@ -96,17 +90,11 @@ public class InteractableObject : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
-        {
-            playerInRange = true;
-        }
+        if (other.CompareTag("Player")) playerInRange = true;
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Player"))
-        {
-            playerInRange = false;
-        }
+        if (other.CompareTag("Player")) playerInRange = false;
     }
 }
