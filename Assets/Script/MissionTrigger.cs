@@ -22,11 +22,20 @@ public class MissionStartTrigger : MonoBehaviour
     [Tooltip("Time in seconds before the panel forces itself shut.")]
     [SerializeField] private float autoCloseDelay = 10f;
 
+    // CRITICAL FIX: Global static safety gate to stop multiple instances processing on the same scene load
+    private static bool hasTriggeredInThisScene = false;
+
     private GameObject missionPanel;
     private List<GameObject> objectiveCrossOutLines = new List<GameObject>();
 
     private Coroutine initCoroutine;
     private Coroutine autoCloseCoroutine;
+
+    private void Awake()
+    {
+        // Reset the safety gate whenever the script instantiates/starts clean
+        hasTriggeredInThisScene = false;
+    }
 
     private void Start()
     {
@@ -37,20 +46,35 @@ public class MissionStartTrigger : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
 
+        // If another copy already processed this frame, turn this copy off immediately and exit
+        if (hasTriggeredInThisScene)
+        {
+            Debug.Log($"[MissionStartTrigger] Duplicate script instance detected on '{gameObject.name}'. Deactivating copy to prevent double UI pops.");
+            this.enabled = false;
+            yield break;
+        }
+
         FindUIElementsInScene();
         UpdateAllObjectiveVisuals();
 
         // Check if we arrived via a standard, fresh Main Menu click
         if (MainMenu.cameFromMenu)
         {
-            Debug.Log("[MissionStartTrigger] Fresh entry context detected.");
+            Debug.Log("[MissionStartTrigger] Fresh entry context detected. Activating UI.");
+
+            // LOCK THE GATE IN_FRAME SO DUPLICATES CANNOT ENTER
+            hasTriggeredInThisScene = true;
             MainMenu.cameFromMenu = false;
+
             ShowMission();
         }
         else
         {
             // If it's a retry or standard map transition, suppress the pop-up to avoid double-freezing
             Debug.Log("[MissionStartTrigger] Retrying or continuous play detected. Suppressing popup entry layout.");
+
+            hasTriggeredInThisScene = true; // Lock out duplicates even on a bypass
+
             if (missionPanel != null)
             {
                 missionPanel.SetActive(false);
