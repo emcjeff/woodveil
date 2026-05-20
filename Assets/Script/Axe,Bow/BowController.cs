@@ -5,7 +5,6 @@ public class BowController : MonoBehaviour
 {
     public static BowController Instance { get; private set; }
 
-    private bool fired = false;
     private Animator BowAnimator;
 
     public string arrowPrefabPath = "Arrow";
@@ -22,13 +21,9 @@ public class BowController : MonoBehaviour
     public float shootCooldown = 0.5f;
 
     [Header("Master Quest Rewards")]
-    [Tooltip("Managed automatically by BookManager. Unlocks when Line 5 is completed")]
     public bool isDamageBoostUnlocked = false;
-
-    [Tooltip("Managed automatically by BookManager. Unlocks when Line 7, 8, and 9 are completed")]
     public bool isDoubleShotUnlocked = false;
 
-    [Tooltip("The time delay between the first and second arrow during a double shot")]
     [SerializeField] private float burstDelay = 0.15f;
 
     private bool isCharging = false;
@@ -46,26 +41,18 @@ public class BowController : MonoBehaviour
         arrowPrefab = Resources.Load<GameObject>(arrowPrefabPath);
     }
 
-    public bool IsFired()
-    {
-        if (fired)
-        {
-            fired = false;
-            return true;
-        }
-        return false;
-    }
-
-    public bool IsBusy()
-    {
-        return isCharging && (Time.time - chargeStartTime > tapThreshold);
-    }
-
     private void Update()
     {
         if (InventorySystem.Instance != null && InventorySystem.Instance.isOpen) return;
         if (CraftingSystem.Instance != null && CraftingSystem.Instance.isOpen) return;
         if (BookManager.Instance != null && BookManager.Instance.isBookOpen) return;
+
+        // CRITICAL BARE-HANDED CHECK: If the active weapon game object is hidden or disabled, break out instantly
+        if (!gameObject.activeInHierarchy)
+        {
+            if (isCharging) ResetBow();
+            return;
+        }
 
         if (Time.time < lastShotTime + shootCooldown) return;
 
@@ -113,18 +100,24 @@ public class BowController : MonoBehaviour
         }
     }
 
+    public bool IsBusy()
+    {
+        return isCharging && (Time.time - chargeStartTime > tapThreshold);
+    }
+
     private void ResetBow()
     {
         isCharging = false;
         chargeStartTime = 0f;
-        BowAnimator.SetBool("IsDrawing", false);
-        BowAnimator.Play("InitialState", 0, 0f);
+        if (BowAnimator != null)
+        {
+            BowAnimator.SetBool("IsDrawing", false);
+            BowAnimator.Play("InitialState", 0, 0f);
+        }
     }
 
     private void ShootArrow(float force)
     {
-        fired = true;
-
         Vector3 shootingDirection = CalculateDirection().normalized;
         Vector3 safeSpawnPos = spawnPosition.position + (shootingDirection * 0.5f);
 
@@ -137,7 +130,6 @@ public class BowController : MonoBehaviour
             Quaternion arrowRotation = Quaternion.LookRotation(shootingDirection);
             GameObject arrow = Instantiate(arrowPrefab, safeSpawnPos, arrowRotation);
             ApplyArrowForce(arrow, shootingDirection, force);
-            ModifyArrowDamageIfBuffed(arrow);
         }
     }
 
@@ -146,19 +138,16 @@ public class BowController : MonoBehaviour
         Quaternion arrowRotation1 = Quaternion.LookRotation(shootingDirection);
         GameObject arrow1 = Instantiate(arrowPrefab, safeSpawnPos, arrowRotation1);
         ApplyArrowForce(arrow1, shootingDirection, force);
-        ModifyArrowDamageIfBuffed(arrow1);
 
         yield return new WaitForSeconds(burstDelay);
 
         Vector3 freshDirection = CalculateDirection().normalized;
         Vector3 freshSpawnPos = spawnPosition.position + (freshDirection * 0.5f);
-
         Vector3 angledDirection = Quaternion.Euler(-2f, 0f, 0f) * freshDirection;
         Quaternion arrowRotation2 = Quaternion.LookRotation(angledDirection);
 
         GameObject arrow2 = Instantiate(arrowPrefab, freshSpawnPos, arrowRotation2);
         ApplyArrowForce(arrow2, angledDirection, force);
-        ModifyArrowDamageIfBuffed(arrow2);
     }
 
     private void ApplyArrowForce(GameObject arrowInstance, Vector3 direction, float force)
@@ -169,11 +158,6 @@ public class BowController : MonoBehaviour
             rb.linearVelocity = Vector3.zero;
             rb.AddForce(direction * force, ForceMode.Impulse);
         }
-    }
-
-    private void ModifyArrowDamageIfBuffed(GameObject arrowInstance)
-    {
-        // OPTIONAL: Implement damage multiplier handling directly here if desired
     }
 
     public Vector3 CalculateDirection()

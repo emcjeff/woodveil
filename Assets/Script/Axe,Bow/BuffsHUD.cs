@@ -9,6 +9,9 @@ public class BuffDisplayHUD : MonoBehaviour
     [Tooltip("The image icon panel that displays when double shot is unlocked.")]
     [SerializeField] private GameObject doubleShotIcon;
 
+    [Tooltip("The image icon panel that displays when the player gets a speed boost from the Axe.")]
+    [SerializeField] private GameObject axeSpeedBuffIcon;
+
     void Start()
     {
         RefreshBuffDisplay();
@@ -22,10 +25,19 @@ public class BuffDisplayHUD : MonoBehaviour
 
     private void RefreshBuffDisplay()
     {
-        // RULE: If the player isn't holding the bow (or it's inactive/hidden), hide icons instantly
+        // 1. --- AXE SPEED BUFF LOGIC ---
+        if (axeSpeedBuffIcon != null)
+        {
+            // The icon lights up automatically if EquipManager says the Axe is in your hands
+            bool isAxeActive = (EquipManager.Instance != null && EquipManager.Instance.IsAxeEquipped());
+            axeSpeedBuffIcon.SetActive(isAxeActive);
+        }
+
+        // 2. --- BOW BUFFS LOGIC ---
+        // RULE: If the player isn't holding the bow (or it's inactive/hidden), hide bow icons instantly
         if (BowController.Instance == null || !BowController.Instance.gameObject.activeInHierarchy)
         {
-            SetAllIconsActive(false);
+            SetBowIconsActive(false);
             return;
         }
 
@@ -41,7 +53,7 @@ public class BuffDisplayHUD : MonoBehaviour
         }
     }
 
-    private void SetAllIconsActive(bool state)
+    private void SetBowIconsActive(bool state)
     {
         if (damageBoostIcon != null) damageBoostIcon.SetActive(state);
         if (doubleShotIcon != null) doubleShotIcon.SetActive(state);

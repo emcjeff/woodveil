@@ -3,32 +3,33 @@ using UnityEngine;
 public class AxeController : MonoBehaviour
 {
     [Header("References")]
-    public Animator axeAnimator;   // Drag your AxeModel here
-    public Collider hitboxCollider; // Drag this object's own BoxCollider here
+    public Animator axeAnimator;
+    public Collider hitboxCollider;
 
     [Header("Settings")]
     public float axeDamage = 25f;
     public float attackCooldown = 0.8f;
-    public float hitboxDuration = 0.2f; // Keep this short so it matches the "swing"
+    public float hitboxDuration = 0.2f;
 
     private float nextAttackTime = 0f;
     private bool canDealDamage = false;
 
     void Start()
     {
-        // Safety check: turn off the hitbox immediately
-        if (hitboxCollider != null)
-        {
-            hitboxCollider.enabled = false;
-        }
+        if (hitboxCollider != null) hitboxCollider.enabled = false;
     }
 
     void Update()
     {
-        // 1. Check if the Inventory is open (assuming you have your InventorySystem setup)
         if (InventorySystem.Instance != null && InventorySystem.Instance.isOpen) return;
 
-        // 2. Click to attack
+        // CRITICAL BARE-HANDED CHECK: If the axe isn't explicitly active, turn off the script functions
+        if (EquipManager.Instance == null || !EquipManager.Instance.IsAxeEquipped())
+        {
+            if (hitboxCollider != null && hitboxCollider.enabled) DisableHitbox();
+            return;
+        }
+
         if (Input.GetMouseButtonDown(0) && Time.time >= nextAttackTime)
         {
             PerformAttack();
@@ -38,39 +39,31 @@ public class AxeController : MonoBehaviour
 
     void PerformAttack()
     {
-        // Play the animation
-        if (axeAnimator != null)
-        {
-            axeAnimator.SetTrigger("Attack");
-        }
+        if (axeAnimator != null) axeAnimator.SetTrigger("Attack");
 
-        // Enable the "Wall"
-        hitboxCollider.enabled = true;
+        if (hitboxCollider != null) hitboxCollider.enabled = true;
         canDealDamage = true;
 
-        // Turn it off after the duration
-        // Note: Spelling must match DisableHitbox exactly!
         Invoke("DisableHitbox", hitboxDuration);
     }
 
     void DisableHitbox()
     {
-        hitboxCollider.enabled = false;
+        if (hitboxCollider != null) hitboxCollider.enabled = false;
         canDealDamage = false;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        // 3. Collision Logic
+        // Block phantom collision calculations if weapon isn't equipped
+        if (EquipManager.Instance == null || !EquipManager.Instance.IsAxeEquipped()) return;
+
         if (canDealDamage && other.CompareTag("Enemy"))
         {
             EnemyHealth enemy = other.GetComponent<EnemyHealth>();
             if (enemy != null)
             {
                 enemy.TakeDamage(axeDamage);
-                Debug.Log("Smashed " + other.name + " with the Hitbox!");
-
-                // Turn off damage so we don't hit the same enemy twice in one swing
                 canDealDamage = false;
             }
         }

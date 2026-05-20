@@ -12,9 +12,6 @@ public class SelectionManager : MonoBehaviour
     public Image handIcon;
     private TextMeshProUGUI interaction_text;
 
-    [Header("Combat Settings")]
-    public float damage = 20f;
-
     [HideInInspector] public bool onTarget;
     [HideInInspector] public GameObject selectedObject;
 
@@ -47,7 +44,7 @@ public class SelectionManager : MonoBehaviour
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, 5f)) // Added 5f reach distance
+        if (Physics.Raycast(ray, out hit, 5f)) // 5f reach distance
         {
             Transform selectionTransform = hit.transform;
             InteractableObject interactable = selectionTransform.GetComponent<InteractableObject>();
@@ -70,7 +67,7 @@ public class SelectionManager : MonoBehaviour
             else if (enemy != null)
             {
                 selectedObject = enemy.gameObject;
-                ResetSelectionUI(); // Hide "Pick Up" UI but keep enemy as selectedObject
+                ResetSelectionUI(); // Hide "Pick Up" UI but keep enemy tracking active
             }
             else
             {
@@ -84,15 +81,8 @@ public class SelectionManager : MonoBehaviour
             ResetSelectionUI();
         }
 
-        // 3. COMBAT LOGIC (On Mouse Release)
-        if (Input.GetMouseButtonUp(0) && selectedObject != null)
-        {
-            if (BowController.Instance != null && BowController.Instance.IsFired())
-            {
-                EnemyHealth health = selectedObject.GetComponent<EnemyHealth>();
-                if (health != null) health.TakeDamage(damage);
-            }
-        }
+        // REMOVED OLD SECTION 3 HITSCAN DAMAGE BUG FROM HERE
+        // Your physical Arrow prefab scripts should apply damage inside their own collision checks!
     }
 
     private void UpdateUI(InteractableObject interactable, WeaponPickup weapon)

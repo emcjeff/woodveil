@@ -127,6 +127,14 @@ public class EquipManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Public helper function so outside scripts can determine if the speed buff applies
+    /// </summary>
+    public bool IsAxeEquipped()
+    {
+        return currentlyEquippedWeapon == "Axe";
+    }
+
+    /// <summary>
     /// Handles showing/hiding quickslots and updating their dim low alpha state conditions
     /// </summary>
     private void UpdateQuickslotUI()

@@ -609,6 +609,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EquipManager
   axeInHand: {fileID: 4033234849109926060}
   bowInHand: {fileID: 1369783177794053209}
+  axeQuickslotCanvasGroup: {fileID: 0}
+  bowQuickslotCanvasGroup: {fileID: 0}
+  activeAlpha: 1
+  unequippedAlpha: 0.25
+  currentlyEquippedWeapon: 
 --- !u!114 &7810438553753799197
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -635,6 +640,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FlashlightController
   lightSource: {fileID: 753231331235787414}
   hasHelmet: 0
+  headlampUI: {fileID: 0}
 --- !u!1 &6547481630048089168
 GameObject:
   m_ObjectHideFlags: 0
@@ -694,8 +700,8 @@ Transform:
   m_GameObject: {fileID: 9039529598878534929}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1.5}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -0.078026, y: -0.000000039736, z: 1.68}
+  m_LocalScale: {x: 1.7421, y: 1, z: 1.404}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5675805728257759000}
