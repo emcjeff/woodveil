@@ -465,7 +465,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
-  m_BaseOffset: 0
+  m_BaseOffset: -0.2
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!114 &8853684487274688616
@@ -546,7 +546,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SlimeMovement3D
   player: {fileID: 0}
-  detectionRadius: 15
+  detectionRadius: 20
   jumpForce: 3
   forwardSpeed: 1
   restDuration: 0

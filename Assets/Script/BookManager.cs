@@ -30,7 +30,8 @@ public class BookManager : MonoBehaviour
     private static int currentSlimeKills = 0;
 
     [Header("Quest Trackers (Spiders)")]
-    [SerializeField] private int spiderRequiredKills = 10;
+    // CHANGED: Target reduced from 10 to 5
+    [SerializeField] private int spiderRequiredKills = 5;
     private static int currentSpiderKills = 0;
 
     [Header("Editor Testing Toggles")]
@@ -299,8 +300,11 @@ public class BookManager : MonoBehaviour
 
         if (bookUI != null)
         {
-            book pageScript = bookUI.GetComponentInChildren<book>(true);
-            if (pageScript != null) pageScript.SyncAndRenderLayout();
+            if (bookUI != null)
+            {
+                book pageScript = bookUI.GetComponentInChildren<book>(true);
+                if (pageScript != null) pageScript.SyncAndRenderLayout();
+            }
         }
 
         ProgressionGate[] gates = FindObjectsByType<ProgressionGate>(FindObjectsSortMode.None);
