@@ -90,7 +90,7 @@ public class QuestUI : MonoBehaviour
                     string finalDescription = InjectDynamicCounters(objectiveNum, rawDescription);
 
                     // Formatted with fixed plain bullet points to replace bad character codes
-                    builder.AppendLine($"<color=#FFFFFF>- {finalDescription}</color>");
+                    builder.AppendLine($"<color=#000000>- {finalDescription}</color>");
 
                     activeQuestsFound = true;
                     displayedCount++; 
@@ -101,7 +101,7 @@ public class QuestUI : MonoBehaviour
         // If no incomplete active quests are found on unlocked pages, show the instruction prompt
         if (!activeQuestsFound)
         {
-            builder.AppendLine($"<color=#AAAAAA>{noObjectivesMessage}</color>");
+            builder.AppendLine($"<color=#000000>{noObjectivesMessage}</color>");
         }
 
         questTrackerText.text = builder.ToString();

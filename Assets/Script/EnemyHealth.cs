@@ -31,8 +31,30 @@ public class EnemyHealth : MonoBehaviour
     {
         if (isDead) return;
 
+        // ========================================================
+        // TOP PRIORITY: AGARANG GIGISINGIN ANG SLIME KAPAG TINAMAAN
+        // Inuna natin ito para hindi ito maharang sakaling magka-error ang UI sa baba.
+        // ========================================================
+        SlimeMovement3D slimeMove = GetComponent<SlimeMovement3D>();
+        if (slimeMove != null)
+        {
+            slimeMove.GetHit(); // Tinatawag ang public GetHit() para mag-Agro ang slime
+        }
+        // ========================================================
+
+        // Pagkatapos ma-agro ang slime, saka babawasan ang buhay at babaguhin ang UI
         currentHealth -= amount;
-        UpdateUI();
+        
+        // Binalot natin sa try-catch para kung sakaling may error sa health bar mo kapag malayo,
+        // hindi mapuputol ang buong takbo ng laro.
+        try 
+        {
+            UpdateUI();
+        }
+        catch (System.Exception e) 
+        {
+            Debug.LogWarning("[EnemyHealth] May nakitang isyu sa Health Bar UI pero pinatuloy pa rin ang laro: " + e.Message);
+        }
 
         if (currentHealth <= 0)
         {

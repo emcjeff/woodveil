@@ -3,9 +3,8 @@ using UnityEngine;
 
 public class SlimeMovement3D : MonoBehaviour
 {
-    [Header("Targeting")]
+    [Header("Targeting & Aggro")]
     public Transform player;
-    public float detectionRadius = 12f;
 
     [Header("Movement Settings")]
     public float jumpForce = 4f;
@@ -16,6 +15,7 @@ public class SlimeMovement3D : MonoBehaviour
     private bool isResting = false;
     private float searchTimer = 0f;
     private bool isDead = false;
+    private bool isAgroed = false; // MAGIGING TRUE LANG KAPAG TINAMAAN NG ATTACK
 
     [Header("Targeting Home-Base")]
     private Vector3 homePosition;
@@ -38,19 +38,13 @@ public class SlimeMovement3D : MonoBehaviour
         }
     }
 
-    // ========================================================
-    // AUTOMATIC SHUTDOWN TRIGGER
-    // ========================================================
     private void OnDisable()
     {
-        // This ensures the shutdown ONLY affects this single slime instance
         isDead = true;
         isResting = true;
 
-        // 1. Instantly kill this specific slime's active coroutines
         StopAllCoroutines();
 
-        // 2. Kill the velocity completely so it hits the ground naturally
         if (rb != null)
         {
             rb.linearVelocity = Vector3.zero;
@@ -58,7 +52,6 @@ public class SlimeMovement3D : MonoBehaviour
             rb.useGravity = true;
         }
     }
-    // ========================================================
 
     void Update()
     {
@@ -77,9 +70,9 @@ public class SlimeMovement3D : MonoBehaviour
 
         if (isResting) return;
 
-        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-
-        if (distanceToPlayer <= detectionRadius)
+        // KONDISYON NG PAGHABOL:
+        // Ngayon, hahabulin ka LANG niya kung tinamaan mo siya (isAgroed == true)
+        if (isAgroed)
         {
             Vector3 directionToPlayer = player.position - transform.position;
             directionToPlayer.y = 0;
@@ -91,6 +84,8 @@ public class SlimeMovement3D : MonoBehaviour
         }
         else
         {
+            // Kung hindi mo pa siya tinatamaan, tinitiyak lang natin na nasa home base siya.
+            // Kung naitulak siya ng physics, dahan-dahan siyang tatalon pabalik sa tambayan niya.
             float distanceToHome = Vector3.Distance(transform.position, homePosition);
 
             if (distanceToHome > homeReturnThreshold)
@@ -139,11 +134,18 @@ public class SlimeMovement3D : MonoBehaviour
         }
     }
 
+    // ========================================================
+    // ITO ANG NAG-IISANG TRIGGER PARA MAGISING ANG SLIME
+    // ========================================================
+    public void GetHit()
+    {
+        if (isDead) return;
+        isAgroed = true; // Dito pa lang siya magsisimulang rumesponde sa Player
+    }
+
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
-
+        // Asul na kahon para sa pinagmulan niyang pwesto (Home)
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireCube(Application.isPlaying ? homePosition : transform.position, Vector3.one * 0.5f);
     }

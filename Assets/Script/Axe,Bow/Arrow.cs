@@ -38,21 +38,38 @@ public class Arrow : MonoBehaviour
     {
         if (isStuck || !canStick || collision.gameObject.CompareTag("Player")) return;
 
-        // 1. Check if we hit an enemy
+        // 1. Check if we hit an ordinary enemy
         EnemyHealth enemy = collision.gameObject.GetComponent<EnemyHealth>();
 
         if (enemy != null)
         {
-            // Determine final applied damage based on Line4, Line5, and Line6 completion
             float finalDamage = CalculateArrowDamage();
             enemy.TakeDamage(finalDamage);
 
-            // Make the arrow disappear immediately
             Destroy(gameObject);
-            return; // Exit the function so it doesn't try to "stick"
+            return; 
         }
 
-        // 2. If it's NOT an enemy (like a wall or the floor), do the sticking logic
+        // ========================================================
+        // BAGONG DAGDAG: Tingnan kung ang tinamaan ay ang Slime
+        // ========================================================
+        SlimeMovement3D slime = collision.gameObject.GetComponent<SlimeMovement3D>();
+
+        if (slime != null)
+        {
+            // Gigisingin ang slime para habulin ka!
+            slime.GetHit();
+
+            // Pwede mo rin itong bawasan ng health dito kung sakaling may health script ang slime mo sa susunod:
+            // Halimbawa: slime.GetComponent<EnemyHealth>().TakeDamage(CalculateArrowDamage());
+
+            // Papawalan ang arrow para hindi ito sumaksak sa gumagalaw na slime
+            Destroy(gameObject);
+            return;
+        }
+        // ========================================================
+
+        // 2. If it's NOT an enemy or slime (like a wall or the floor), do the sticking logic
         isStuck = true;
 
         rb.linearVelocity = Vector3.zero;

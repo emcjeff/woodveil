@@ -1443,6 +1443,16 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1201432634}
     m_Modifications:
+    - target: {fileID: -4769130311636587296, guid: ac6608177d2b30543819d125f5460d99,
+        type: 3}
+      propertyPath: player
+      value: 
+      objectReference: {fileID: 1782455412}
+    - target: {fileID: -4769130311636587296, guid: ac6608177d2b30543819d125f5460d99,
+        type: 3}
+      propertyPath: forwardSpeed
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 546384161235462435, guid: ac6608177d2b30543819d125f5460d99,
         type: 3}
       propertyPath: lootTable.Array.data[0].itemPrefab
@@ -1533,7 +1543,8 @@ PrefabInstance:
       propertyPath: playerTransform
       value: 
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 8853684487274688616, guid: ac6608177d2b30543819d125f5460d99, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -1688,6 +1699,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1201432634}
     m_Modifications:
+    - target: {fileID: -4769130311636587296, guid: ac6608177d2b30543819d125f5460d99,
+        type: 3}
+      propertyPath: player
+      value: 
+      objectReference: {fileID: 1782455412}
     - target: {fileID: 546384161235462435, guid: ac6608177d2b30543819d125f5460d99,
         type: 3}
       propertyPath: lootTable.Array.data[0].itemPrefab
@@ -4190,6 +4206,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1201432634}
     m_Modifications:
+    - target: {fileID: -4769130311636587296, guid: ac6608177d2b30543819d125f5460d99,
+        type: 3}
+      propertyPath: player
+      value: 
+      objectReference: {fileID: 1782455412}
     - target: {fileID: 546384161235462435, guid: ac6608177d2b30543819d125f5460d99,
         type: 3}
       propertyPath: lootTable.Array.data[0].itemPrefab
@@ -4243,7 +4264,7 @@ PrefabInstance:
     - target: {fileID: 7148042028152722796, guid: ac6608177d2b30543819d125f5460d99,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.00002
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 7148042028152722796, guid: ac6608177d2b30543819d125f5460d99,
         type: 3}
@@ -5635,7 +5656,7 @@ GameObject:
   - component: {fileID: 1232269741}
   - component: {fileID: 1232269740}
   - component: {fileID: 1232269739}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: WoodenCratesalabas (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5672,7 +5693,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -7210,6 +7231,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1201432634}
     m_Modifications:
+    - target: {fileID: -4769130311636587296, guid: ac6608177d2b30543819d125f5460d99,
+        type: 3}
+      propertyPath: player
+      value: 
+      objectReference: {fileID: 1782455412}
     - target: {fileID: 546384161235462435, guid: ac6608177d2b30543819d125f5460d99,
         type: 3}
       propertyPath: lootTable.Array.data[0].itemPrefab
@@ -9651,6 +9677,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1201432634}
     m_Modifications:
+    - target: {fileID: -4769130311636587296, guid: ac6608177d2b30543819d125f5460d99,
+        type: 3}
+      propertyPath: player
+      value: 
+      objectReference: {fileID: 1782455412}
     - target: {fileID: 546384161235462435, guid: ac6608177d2b30543819d125f5460d99,
         type: 3}
       propertyPath: lootTable.Array.data[0].itemPrefab
@@ -9882,7 +9913,7 @@ GameObject:
   - component: {fileID: 2093117241}
   - component: {fileID: 2093117240}
   - component: {fileID: 2093117239}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: WoodenCratesalabas (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9919,7 +9950,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -10155,6 +10186,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1201432634}
     m_Modifications:
+    - target: {fileID: -4769130311636587296, guid: ac6608177d2b30543819d125f5460d99,
+        type: 3}
+      propertyPath: player
+      value: 
+      objectReference: {fileID: 1782455412}
+    - target: {fileID: -4769130311636587296, guid: ac6608177d2b30543819d125f5460d99,
+        type: 3}
+      propertyPath: jumpForce
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: -4769130311636587296, guid: ac6608177d2b30543819d125f5460d99,
+        type: 3}
+      propertyPath: forwardSpeed
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: -4769130311636587296, guid: ac6608177d2b30543819d125f5460d99,
+        type: 3}
+      propertyPath: detectionRadius
+      value: 50
+      objectReference: {fileID: 0}
     - target: {fileID: 546384161235462435, guid: ac6608177d2b30543819d125f5460d99,
         type: 3}
       propertyPath: lootTable.Array.data[0].itemPrefab
@@ -10613,7 +10664,7 @@ GameObject:
   - component: {fileID: 3910696011937486302}
   - component: {fileID: 1270404341127373076}
   - component: {fileID: 3910696011937486303}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: WoodenCratesalabas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10632,7 +10683,7 @@ GameObject:
   - component: {fileID: 3469287837194679259}
   - component: {fileID: 1711813855547655953}
   - component: {fileID: 3469287837194679260}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: WoodenCratesagelid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12123,7 +12174,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3

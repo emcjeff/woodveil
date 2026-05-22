@@ -475,13 +475,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6697281870307641476}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac93dcda6046297478263152a6f562c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AILocomotion
-  playerTransform: {fileID: 0}
-  detectionRange: 15
+  playerTransform: {fileID: 3755692188965166534, guid: 0e5c481d3426933499de4e1b09cb4640,
+    type: 3}
+  detectionRange: 50
 --- !u!114 &3162458974343799025
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -545,10 +546,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5971f22fc04c7fe40b14ba55ec3dbfd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SlimeMovement3D
-  player: {fileID: 0}
-  detectionRadius: 20
-  jumpForce: 3
-  forwardSpeed: 1
+  player: {fileID: 3755692188965166534, guid: 0e5c481d3426933499de4e1b09cb4640, type: 3}
+  jumpForce: 8
+  forwardSpeed: 5
   restDuration: 0
   homeReturnThreshold: 3
 --- !u!1 &6942114889229213680
