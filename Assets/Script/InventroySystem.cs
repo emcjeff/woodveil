@@ -3,66 +3,130 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class InventorySystem : MonoBehaviour
 {
-    public static InventorySystem Instance { get; set; }
+    public static InventorySystem Instance { get; private set; }
 
     [Header("UI General")]
     public GameObject inventoryScreenUI;
     public List<GameObject> slotList = new List<GameObject>();
     public List<string> itemList = new List<string>();
 
-    public bool isOpen;
+    [HideInInspector] public bool isOpen;
+
+    // Simple event delegate hook to alert HUD overlays when counts shift
+    public event Action OnInventoryChanged;
 
     private void Awake()
     {
-        // PERSISTENCE LOGIC:
-        // If an instance already exists, destroy this new one.
-        // Otherwise, make this one the permanent instance.
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
         }
-        else
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        // Track when scenes change to heal UI associations automatically
+        SceneManager.sceneLoaded += OnSceneChangedLayout;
+
+        ResetInventoryDataState();
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneChangedLayout;
+    }
+
+    private void Start()
+    {
+        InitializeSceneUIAssociation(SceneManager.GetActiveScene().name);
+    }
+
+    private void OnSceneChangedLayout(Scene scene, LoadSceneMode mode)
+    {
+        InitializeSceneUIAssociation(scene.name);
+    }
+
+    /// <summary>
+    /// Looks for the new scene UI assets to link manager trackers to active visual elements.
+    /// </summary>
+    private void InitializeSceneUIAssociation(string sceneName)
+    {
+        isOpen = false;
+
+        // If we load back to menus or screens where tracking isn't needed, completely clear old references
+        if (sceneName == "MainMenu" || sceneName == "GameOver" || sceneName == "Win")
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // Keeps your items across scenes!
+            ResetInventoryDataState();
+            return;
+        }
+
+        // Search for the newly generated scene canvas
+        GameObject canvasObj = GameObject.Find("Canvas");
+        if (canvasObj != null)
+        {
+            // Looks for the Inventory Panel layout setup
+            Transform targetPanel = canvasObj.transform.Find("InventoryScreen");
+            if (targetPanel != null)
+            {
+                inventoryScreenUI = targetPanel.gameObject;
+                inventoryScreenUI.SetActive(false);
+                PopulateSlotList();
+                Debug.Log("[Inventory Manager] Successfully linked to the new scene's UI layout.");
+            }
+            else
+            {
+                // Fallback scan: look through structural root setups
+                inventoryScreenUI = GameObject.Find("InventoryScreen");
+                if (inventoryScreenUI != null)
+                {
+                    inventoryScreenUI.SetActive(false);
+                    PopulateSlotList();
+                }
+            }
         }
     }
 
-    void Start()
+    /// <summary>
+    /// Safely cleans up data, drops lingering event connections, and handles scene resets.
+    /// </summary>
+    public void ResetInventoryDataState()
     {
         isOpen = false;
-        PopulateSlotList();
+        if (itemList != null) itemList.Clear();
+        if (slotList != null) slotList.Clear();
 
-        // Ensure UI is hidden when starting/switching scenes
-        if (inventoryScreenUI != null)
-        {
-            inventoryScreenUI.SetActive(false);
-        }
+        inventoryScreenUI = null;
+        OnInventoryChanged = null;
 
-        Cursor.visible = false;
+        Debug.Log("[Inventory Manager] Data structures completely cleared for scene session reset.");
     }
 
     private void PopulateSlotList()
     {
         slotList.Clear();
+        if (inventoryScreenUI == null) return;
+
         foreach (Transform child in inventoryScreenUI.transform)
         {
-            if (child.CompareTag("Slot"))
-            {
-                slotList.Add(child.gameObject);
-            }
+            if (child.CompareTag("Slot")) slotList.Add(child.gameObject);
         }
     }
 
     void Update()
     {
-        // Check if BookManager exists before checking isBookOpen to avoid errors
-        bool bookOpen = (BookManager.Instance != null && BookManager.Instance.isBookOpen);
+        // Block processing if the current layout environment has no operational UI attached
+        if (inventoryScreenUI == null) return;
 
-        if (Input.GetKeyDown(KeyCode.I) && !bookOpen)
+        bool bookOpen = (BookManager.Instance != null && BookManager.Instance.isBookOpen);
+        bool craftingOpen = (CraftingSystem.Instance != null && CraftingSystem.Instance.isOpen);
+
+        // CHANGED: Listens for KeyCode.Tab and respects existing UI flags
+        if (Input.GetKeyDown(KeyCode.Tab) && !bookOpen && !craftingOpen)
         {
             if (!isOpen) OpenInventory();
             else CloseInventory();
@@ -71,10 +135,12 @@ public class InventorySystem : MonoBehaviour
 
     public void AddToInventory(string itemName, int quantity = 1)
     {
+        if (slotList == null || slotList.Count == 0) return;
+
         // 1. Try to find an existing stack that is NOT FULL
         foreach (GameObject slot in slotList)
         {
-            if (slot.transform.childCount > 0)
+            if (slot != null && slot.transform.childCount > 0)
             {
                 InventoryItem itemInSlot = slot.transform.GetChild(0).GetComponent<InventoryItem>();
 
@@ -142,7 +208,7 @@ public class InventorySystem : MonoBehaviour
     {
         foreach (GameObject slot in slotList)
         {
-            if (slot.transform.childCount == 0) return slot;
+            if (slot != null && slot.transform.childCount == 0) return slot;
         }
         return null;
     }
@@ -151,19 +217,25 @@ public class InventorySystem : MonoBehaviour
     {
         foreach (GameObject slot in slotList)
         {
-            if (slot.transform.childCount == 0) return false;
+            if (slot != null && slot.transform.childCount == 0) return false;
         }
         return true;
     }
+
     public int GetTotalItemCount(string targetItemName)
     {
         int total = 0;
+        if (slotList == null || slotList.Count == 0) return 0;
+
         foreach (GameObject slot in slotList)
         {
-            if (slot.transform.childCount > 0)
+            if (slot != null && slot.transform.childCount > 0)
             {
+                // Safety guard check against empty tracking slots inside loop
+                if (slot.transform.GetChild(0) == null) continue;
+
                 InventoryItem item = slot.transform.GetChild(0).GetComponent<InventoryItem>();
-                if (item != null && item.itemName == targetItemName)
+                if (item != null && string.Equals(item.itemName, targetItemName, StringComparison.OrdinalIgnoreCase))
                 {
                     total += item.amount;
                 }
@@ -175,10 +247,11 @@ public class InventorySystem : MonoBehaviour
     public void RemoveItem(string nameToRemove, int amountToRemove)
     {
         int counter = amountToRemove;
+        if (slotList == null) return;
 
         for (var i = slotList.Count - 1; i >= 0; i--)
         {
-            if (slotList[i].transform.childCount > 0)
+            if (slotList[i] != null && slotList[i].transform.childCount > 0)
             {
                 InventoryItem item = slotList[i].transform.GetChild(0).GetComponent<InventoryItem>();
                 if (item != null && item.itemName == nameToRemove && counter > 0)
@@ -203,9 +276,11 @@ public class InventorySystem : MonoBehaviour
     public void ReCalculateList()
     {
         itemList.Clear();
+        if (slotList == null) return;
+
         foreach (GameObject slot in slotList)
         {
-            if (slot.transform.childCount > 0)
+            if (slot != null && slot.transform.childCount > 0)
             {
                 InventoryItem item = slot.transform.GetChild(0).GetComponent<InventoryItem>();
                 if (item != null)
@@ -217,11 +292,13 @@ public class InventorySystem : MonoBehaviour
                 }
             }
         }
+
+        OnInventoryChanged?.Invoke();
     }
 
     private void OpenInventory()
     {
-        inventoryScreenUI.SetActive(true);
+        if (inventoryScreenUI != null) inventoryScreenUI.SetActive(true);
         isOpen = true;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -230,7 +307,7 @@ public class InventorySystem : MonoBehaviour
 
     private void CloseInventory()
     {
-        inventoryScreenUI.SetActive(false);
+        if (inventoryScreenUI != null) inventoryScreenUI.SetActive(false);
         isOpen = false;
 
         if (CraftingSystem.Instance != null && !CraftingSystem.Instance.isOpen)

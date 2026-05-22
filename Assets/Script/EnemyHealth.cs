@@ -81,21 +81,40 @@ public class EnemyHealth : MonoBehaviour
             GetComponent<NavMeshAgent>().enabled = false;
         }
 
-        // --- SIGNAL SLIME MISSION OVER TO BOOKMANAGER ---
-        // Checks if the enemy name contains "Slime" (e.g., Slime Green, SlimePrefab, Slime(Clone))
-        if (gameObject.name.Contains("Slime") && BookManager.Instance != null)
+        // ========================================================
+        // CRITICAL FIX: SHUT DOWN THE SLIME HOP MECHANICS INSTANTLY
+        // ========================================================
+        SlimeMovement3D slimeMove = GetComponent<SlimeMovement3D>();
+        if (slimeMove != null)
         {
-            BookManager.Instance.RegisterSlimeKill();
+            slimeMove.enabled = false; // Toggling this off fires our self-disabling code!
         }
-        // ------------------------------------------------
+        // ========================================================
 
-        // Start the timer to drop loot and then destroy the body
+        // --- SIGNAL ENEMY KILLS TO THE BOOKMANAGER ---
+        if (BookManager.Instance != null)
+        {
+            if (gameObject.name.Contains("SpiderBoss") || gameObject.name.Contains("Spider Boss"))
+            {
+                BookManager.Instance.RegisterSpiderBossKill();
+            }
+            else if (gameObject.name.Contains("Spider"))
+            {
+                BookManager.Instance.RegisterSpiderKill(gameObject.name);
+            }
+            else if (gameObject.name.Contains("Slime"))
+            {
+                BookManager.Instance.RegisterSlimeKill(gameObject.name);
+            }
+        }
+        // ------------------------------------------------------
+
         StartCoroutine(DestroyObject());
     }
 
     IEnumerator DestroyObject()
     {
-        // Wait for the death animation to finish
+        // Wait safely for 2 seconds while the animation finishes on the ground
         yield return new WaitForSeconds(2.0f);
 
         // --- CONNECT TO ENEMY DROP ---

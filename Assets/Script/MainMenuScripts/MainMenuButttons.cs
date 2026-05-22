@@ -1,10 +1,9 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections;
 
 public class MainMenu : MonoBehaviour
 {
-    [Header("UI Panels")]
+    [Header("UI Panels (Main Menu Scene Only)")]
     public GameObject optionsPanel;
     public GameObject mainButtonsGroup;
     public GameObject pauseMenuPanel;
@@ -13,49 +12,93 @@ public class MainMenu : MonoBehaviour
     public string mainMenuSceneName = "MainMenu";
     public string firstLevelName = "wodbeyl";
     public string gameOverSceneName = "GameOver";
+    public string WinSceneName = "Win";
 
     public static bool isRetrying = false;
     public static bool isLongReturning = false;
+
+    // GLOBAL STATUS STATE TRACKER
+    public static bool cameFromMenu = true;
 
     private CanvasGroup gameplayCanvasGroup;
 
     void Awake()
     {
-        // --- HEADACHE-FREE CURSOR FIX ---
-        // Get the current scene name
+        // FORCE time to unfreeze immediately before evaluating any transitions
+        Time.timeScale = 1f;
+
         string currentScene = SceneManager.GetActiveScene().name;
 
-        // If we are in the Main Menu OR the Game Over screen, free the cursor immediately!
-        if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName)
+        // If the player lands in any menu structure state context, firmly lock down the popup flag
+        if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName || currentScene == WinSceneName)
         {
-            Time.timeScale = 1f;
+            cameFromMenu = true;
+            Debug.Log($"[MainMenu Awake] State context flagged: cameFromMenu = {cameFromMenu} via scene: {currentScene}");
+        }
+
+        if (currentScene == mainMenuSceneName)
+        {
+            // Reset transition cycles completely upon successfully landing in the Main Menu
+            isLongReturning = false;
+
+            // FAST RE-ROUTE FOR RETRIES
+            if (isRetrying)
+            {
+                Debug.Log("[MainMenu Awake] Retry flag confirmed active! Bypassing landing choices and launching back into stage...");
+                PlayGame();
+                return;
+            }
+
+            isRetrying = false;
+
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
-        }
-        // --------------------------------
 
-        // 2. Find the Canvas and its CanvasGroup
+            ValidateMainMenuEventSystem();
+
+            if (LoadingScreenOverlay.Instance != null)
+            {
+                Debug.Log("[MainMenu Awake] Standard Main Menu arrival. Signaling LoadingScreenOverlay curtain drop...");
+                LoadingScreenOverlay.Instance.HideWithDelay();
+            }
+        }
+        else if (currentScene == gameOverSceneName || currentScene == WinSceneName)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
+            PurgePersistentObjects();
+
+            // AUTOMATIC BOUNCE TO MAIN MENU FOR RETRIES / RETURNS
+            if (isRetrying || isLongReturning)
+            {
+                Debug.Log($"[Scene Handler] Active transition loop running (Retry={isRetrying}, LongReturn={isLongReturning}). Shifting scene payload to Main Menu...");
+                SceneManager.LoadScene(mainMenuSceneName);
+                return; // Stop running Awake processing loop for this frame
+            }
+        }
+
+        // Locate layout elements safely without breaking scene management architectures
         GameObject canvasObj = GameObject.Find("Canvas");
         if (canvasObj != null)
         {
             gameplayCanvasGroup = canvasObj.GetComponent<CanvasGroup>();
-
-            // If it doesn't have a CanvasGroup yet, add one automatically!
             if (gameplayCanvasGroup == null)
             {
                 gameplayCanvasGroup = canvasObj.AddComponent<CanvasGroup>();
             }
 
-            // HIDE it for the menu without disabling the object
-            SetCanvasVisible(false);
+            if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName || currentScene == WinSceneName)
+            {
+                SetCanvasVisible(false);
+            }
         }
     }
 
     void Update()
     {
-        // 3. Keep fighting for the cursor in the Build menu / Game Over screen
         string currentScene = SceneManager.GetActiveScene().name;
-        if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName)
+        if (currentScene == mainMenuSceneName || currentScene == gameOverSceneName || currentScene == WinSceneName)
         {
             if (Cursor.lockState != CursorLockMode.None)
             {
@@ -65,7 +108,50 @@ public class MainMenu : MonoBehaviour
         }
     }
 
-    // Helper function to show/hide UI smoothly
+    private void PurgePersistentObjects()
+    {
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null) Destroy(playerObj);
+
+        GameObject fallbackPlayer = GameObject.Find("PLAYER");
+        if (fallbackPlayer != null) Destroy(fallbackPlayer);
+
+        GameObject gameplayCanvas = GameObject.Find("Canvas");
+        if (gameplayCanvas != null && gameplayCanvas.gameObject != this.gameObject)
+        {
+            if (gameplayCanvas.transform.parent == null)
+            {
+                Destroy(gameplayCanvas);
+                Debug.Log("[System Clean] Persistent gameplay HUD Canvas purged.");
+            }
+        }
+
+        // FIXED: Do not destroy the event system if we are instantly reloading the main menu, 
+        // otherwise the new scene will lose input detection capabilities.
+        UnityEngine.EventSystems.EventSystem currentSystem = UnityEngine.EventSystems.EventSystem.current;
+        if (currentSystem != null && !isLongReturning && !isRetrying)
+        {
+            Destroy(currentSystem.gameObject);
+        }
+    }
+
+    private void ValidateMainMenuEventSystem()
+    {
+        UnityEngine.EventSystems.EventSystem[] activeSystems = FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None);
+
+        if (activeSystems.Length > 1)
+        {
+            for (int i = 1; i < activeSystems.Length; i++)
+            {
+                if (activeSystems[i] != null) Destroy(activeSystems[i].gameObject);
+            }
+        }
+        else if (activeSystems.Length == 0)
+        {
+            new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(UnityEngine.EventSystems.StandaloneInputModule));
+        }
+    }
+
     void SetCanvasVisible(bool visible)
     {
         if (gameplayCanvasGroup != null)
@@ -78,20 +164,37 @@ public class MainMenu : MonoBehaviour
 
     public void PlayGame()
     {
-        // SHOW the UI just before loading the game
         SetCanvasVisible(true);
+        Time.timeScale = 1f;
 
+        if (InventorySystem.Instance != null) InventorySystem.Instance.ResetInventoryDataState();
+
+        cameFromMenu = true;
         isRetrying = false;
         isLongReturning = false;
-        Time.timeScale = 1f;
+
+        StoryIntro.ResetIntroPlaystate();
         SceneManager.LoadScene(firstLevelName);
     }
 
     public void ReturnToMainMenu()
     {
+        // Unfreeze time before changing scenes so UI functions don't get stuck!
         Time.timeScale = 1f;
         isRetrying = false;
-        isLongReturning = false;
+        isLongReturning = true;
+
+        if (LoadingScreenOverlay.Instance != null)
+        {
+            LoadingScreenOverlay.Instance.Show();
+        }
+
+        // Clean slate reset for global progression managers if leaving the stage run
+        if (BookManager.Instance != null)
+        {
+            BookManager.Instance.WipeAndResetProgressionSaveData();
+        }
+
         SceneManager.LoadScene(mainMenuSceneName);
     }
 
@@ -100,7 +203,38 @@ public class MainMenu : MonoBehaviour
         Time.timeScale = 1f;
         isRetrying = false;
         isLongReturning = true;
-        SceneManager.LoadScene(gameOverSceneName);
+
+        if (LoadingScreenOverlay.Instance != null)
+        {
+            LoadingScreenOverlay.Instance.Show();
+        }
+
+        SceneManager.LoadScene(mainMenuSceneName);
+    }
+
+    public void GoToWinScene()
+    {
+        Time.timeScale = 1f;
+        isRetrying = false;
+        isLongReturning = true;
+
+        DisableActiveGameplaySystems();
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        Debug.Log("[Victory] Transitioning to Win Scene cleanly.");
+        SceneManager.LoadScene(WinSceneName);
+    }
+
+    private void DisableActiveGameplaySystems()
+    {
+        if (SelectionManager.Instance != null) SelectionManager.Instance.enabled = false;
+        if (BookManager.Instance != null) BookManager.Instance.enabled = false;
+        if (InventorySystem.Instance != null) InventorySystem.Instance.enabled = false;
+
+        MonoBehaviour mainCamScript = Camera.main != null ? Camera.main.GetComponent<MonoBehaviour>() : null;
+        if (mainCamScript != null) mainCamScript.enabled = false;
     }
 
     public void RetryGame()
@@ -108,7 +242,13 @@ public class MainMenu : MonoBehaviour
         Time.timeScale = 1f;
         isRetrying = true;
         isLongReturning = false;
-        SceneManager.LoadScene(mainMenuSceneName);
+
+        if (LoadingScreenOverlay.Instance != null)
+        {
+            LoadingScreenOverlay.Instance.Show();
+        }
+
+        SceneManager.LoadScene(gameOverSceneName);
     }
 
     public void ResumeGame()
@@ -117,13 +257,6 @@ public class MainMenu : MonoBehaviour
         Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-    }
-
-    private IEnumerator AutoLoadLevelSequence()
-    {
-        isRetrying = false;
-        yield return new WaitForSecondsRealtime(0.2f);
-        SceneManager.LoadScene(firstLevelName);
     }
 
     public void OpenOptions()

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class InteractableObject : MonoBehaviour
 {
@@ -7,7 +7,7 @@ public class InteractableObject : MonoBehaviour
 
     public bool playerInRange;
 
-    [Tooltip("Set this to 'Book', 'Page', 'Headlamp', 'Stone', etc.")]
+    [Tooltip("Set this to 'Book', 'Page', 'Headlamp', 'Bow', 'Stone', etc.")]
     public string ItemName;
 
     [Header("Page Settings")]
@@ -19,6 +19,19 @@ public class InteractableObject : MonoBehaviour
     public void PickUp()
     {
         if (type == InteractionType.ObservationOnly) return;
+
+        // NOTIFICATION TRIGGER
+        if (NotificationManager.Instance != null)
+        {
+            if (ItemName.ToLower() == "page")
+            {
+                NotificationManager.Instance.ShowNotification($"Picked up Page {pageIndex + 1}!");
+            }
+            else
+            {
+                NotificationManager.Instance.ShowNotification($"Picked up {ItemName}!");
+            }
+        }
 
         // 1. SPECIAL LOGIC: The Book
         if (ItemName.ToLower() == "book")
@@ -34,32 +47,29 @@ public class InteractableObject : MonoBehaviour
         // 2. SPECIAL LOGIC: The Pages
         if (ItemName.ToLower() == "page")
         {
-            book pageSystem = Object.FindAnyObjectByType<book>(FindObjectsInactive.Include);
-
-            if (pageSystem != null)
+            if (BookManager.Instance != null)
             {
-                pageSystem.UnlockPage(pageIndex);
-                Debug.Log("Unlocked Page index: " + pageIndex);
+                BookManager.Instance.UnlockPageGlobal(pageIndex);
+                Debug.Log("Successfully unlocked global Page index: " + pageIndex);
                 Destroy(gameObject);
                 return;
             }
             else
             {
-                Debug.LogWarning("Could not find the Book script on the UI!");
+                Debug.LogWarning("BookManager.Instance is missing in the scene!");
             }
         }
 
-        // 3. SPECIAL LOGIC: The Headlamp (Changed from helmet!)
+        // 3. SPECIAL LOGIC: The Headlamp
         if (ItemName.ToLower() == "headlamp")
         {
             if (FlashlightController.Instance != null)
             {
-                FlashlightController.Instance.PickUpHelmet(); // Keeps your old flashlight system hook working
+                FlashlightController.Instance.PickUpHelmet();
 
-                // Cross out Objective 5 in your Book!
                 if (BookManager.Instance != null)
                 {
-                    BookManager.Instance.CompleteObjective(5);
+                    BookManager.Instance.CompleteObjective(6);
                 }
 
                 Destroy(gameObject);
@@ -67,7 +77,7 @@ public class InteractableObject : MonoBehaviour
             }
         }
 
-        // 4. REGULAR ITEMS
+        // 4. REGULAR ITEMS (The Bow falls back here cleanly)
         if (InventorySystem.Instance != null)
         {
             if (!InventorySystem.Instance.CheckIfFull())
@@ -80,17 +90,11 @@ public class InteractableObject : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
-        {
-            playerInRange = true;
-        }
+        if (other.CompareTag("Player")) playerInRange = true;
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Player"))
-        {
-            playerInRange = false;
-        }
+        if (other.CompareTag("Player")) playerInRange = false;
     }
 }

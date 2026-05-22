@@ -1,6 +1,6 @@
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.UI;
 
 public class MissionStartTrigger : MonoBehaviour
@@ -16,83 +16,93 @@ public class MissionStartTrigger : MonoBehaviour
     [Header("Behavior")]
     [SerializeField] private bool pauseGame = true;
 
+    [Header("Auto-Close Settings")]
+    [Tooltip("Should the panel close automatically if the player doesn't click anything?")]
+    [SerializeField] private bool useAutoCloseTimer = true;
+    [Tooltip("Time in seconds before the panel forces itself shut.")]
+    [SerializeField] private float autoCloseDelay = 10f;
+
+    // CRITICAL FIX: Global static safety gate to stop multiple instances processing on the same scene load
+    private static bool hasTriggeredInThisScene = false;
+
     private GameObject missionPanel;
     private List<GameObject> objectiveCrossOutLines = new List<GameObject>();
-    private static bool hasShownMission = false;
 
-    // Static array remembers which objectives are done across all scene changes
-    private static bool[] completedObjectives = new bool[5];
+    private Coroutine initCoroutine;
+    private Coroutine autoCloseCoroutine;
+
+    private void Awake()
+    {
+        // Reset the safety gate whenever the script instantiates/starts clean
+        hasTriggeredInThisScene = false;
+    }
 
     private void Start()
     {
-        // 1. Find the panel and lines inside the global persistent Canvas
-        FindUIElementsInScene();
+        initCoroutine = StartCoroutine(DelayedStartRoutine());
+    }
 
-        // 2. Sync the lines to show what's already completed
+    private IEnumerator DelayedStartRoutine()
+    {
+        yield return new WaitForEndOfFrame();
+
+        // If another copy already processed this frame, turn this copy off immediately and exit
+        if (hasTriggeredInThisScene)
+        {
+            Debug.Log($"[MissionStartTrigger] Duplicate script instance detected on '{gameObject.name}'. Deactivating copy to prevent double UI pops.");
+            this.enabled = false;
+            yield break;
+        }
+
+        FindUIElementsInScene();
         UpdateAllObjectiveVisuals();
 
-        // If the initial intro pop-up already happened, turn off this trigger box right away
-        if (hasShownMission)
+        // Check if we arrived via a standard, fresh Main Menu click
+        if (MainMenu.cameFromMenu)
         {
-            gameObject.SetActive(false);
+            Debug.Log("[MissionStartTrigger] Fresh entry context detected. Activating UI.");
+
+            // LOCK THE GATE IN_FRAME SO DUPLICATES CANNOT ENTER
+            hasTriggeredInThisScene = true;
+            MainMenu.cameFromMenu = false;
+
+            ShowMission();
         }
+        else
+        {
+            // If it's a retry or standard map transition, suppress the pop-up to avoid double-freezing
+            Debug.Log("[MissionStartTrigger] Retrying or continuous play detected. Suppressing popup entry layout.");
+
+            hasTriggeredInThisScene = true; // Lock out duplicates even on a bypass
+
+            if (missionPanel != null)
+            {
+                missionPanel.SetActive(false);
+            }
+            this.enabled = false;
+        }
+
+        initCoroutine = null;
     }
 
     private void FindUIElementsInScene()
     {
-        // Advanced search to search through ALL scenes, including DontDestroyOnLoad layouts
         Transform[] allTransforms = Resources.FindObjectsOfTypeAll<Transform>();
-
-        // Clear old references to avoid double-stacking bugs
         objectiveCrossOutLines.Clear();
-
-        // Temporary dictionary to hold lines as we find them so they stay in order
         Dictionary<string, GameObject> foundLines = new Dictionary<string, GameObject>();
 
         foreach (Transform t in allTransforms)
         {
             if (t.hideFlags == HideFlags.None)
             {
-                // Find the main panel
-                if (t.name == missionPanelName)
-                {
-                    missionPanel = t.gameObject;
-                }
-
-                // Check if this object matches one of our line names
-                if (crossOutLineNames.Contains(t.name))
-                {
-                    foundLines[t.name] = t.gameObject;
-                }
+                if (t.name == missionPanelName) missionPanel = t.gameObject;
+                if (crossOutLineNames.Contains(t.name)) foundLines[t.name] = t.gameObject;
             }
         }
 
-        // Reconstruct the lines list in the exact order you typed them in the Inspector
         foreach (string lineName in crossOutLineNames)
         {
-            if (foundLines.ContainsKey(lineName))
-            {
-                objectiveCrossOutLines.Add(foundLines[lineName]);
-            }
-            else
-            {
-                Debug.LogWarning($"MissionStartTrigger: Missing line element named '{lineName}' in the UI hierarchy!");
-            }
-        }
-
-        if (missionPanel == null)
-        {
-            Debug.LogWarning($"MissionStartTrigger: Could not find any GameObject named '{missionPanelName}' anywhere!");
-        }
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Player") && !hasShownMission)
-        {
-            // Safeguard refresh in case the UI was loaded late
-            FindUIElementsInScene();
-            ShowMission();
+            if (foundLines.ContainsKey(lineName)) objectiveCrossOutLines.Add(foundLines[lineName]);
         }
     }
 
@@ -100,11 +110,9 @@ public class MissionStartTrigger : MonoBehaviour
     {
         if (missionPanel == null) return;
 
-        hasShownMission = true;
         UpdateAllObjectiveVisuals();
         missionPanel.SetActive(true);
 
-        // Auto link the Accept button
         Button acceptButton = missionPanel.GetComponentInChildren<Button>();
         if (acceptButton != null)
         {
@@ -119,52 +127,72 @@ public class MissionStartTrigger : MonoBehaviour
         {
             Time.timeScale = 0f;
         }
+
+        if (useAutoCloseTimer)
+        {
+            if (autoCloseCoroutine != null) StopCoroutine(autoCloseCoroutine);
+            autoCloseCoroutine = StartCoroutine(AutoCloseCountdownRoutine());
+        }
+    }
+
+    private IEnumerator AutoCloseCountdownRoutine()
+    {
+        yield return new WaitForSecondsRealtime(autoCloseDelay);
+        Debug.Log("[MissionStartTrigger] Auto-closing panel context via delay timeout.");
+        CloseMission();
     }
 
     public void CloseMission()
     {
-        if (missionPanel == null) FindUIElementsInScene();
+        if (initCoroutine != null)
+        {
+            StopCoroutine(initCoroutine);
+            initCoroutine = null;
+        }
+
+        if (autoCloseCoroutine != null)
+        {
+            StopCoroutine(autoCloseCoroutine);
+            autoCloseCoroutine = null;
+        }
 
         if (missionPanel != null)
         {
             missionPanel.SetActive(false);
         }
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-
-        if (pauseGame)
+        // Only resume time if another UI element (like BookManager) isn't actively forcing a pause
+        bool isBookOpen = (BookManager.Instance != null && BookManager.Instance.isBookOpen);
+        if (!isBookOpen)
         {
-            Time.timeScale = 1f;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            if (pauseGame) Time.timeScale = 1f;
         }
 
-        // Disable collider so player doesn't trip the popup again while running around wodbeyl
-        Collider col = GetComponent<Collider>();
-        if (col != null) col.enabled = false;
+        this.enabled = false;
     }
 
     public void CompleteObjective(int objectiveNumber)
     {
-        int index = objectiveNumber - 1;
-
-        if (index >= 0 && index < completedObjectives.Length)
+        if (BookManager.Instance != null)
         {
-            completedObjectives[index] = true;
-
-            // Make sure we have the line links before toggling them
+            BookManager.Instance.CompleteObjective(objectiveNumber);
             FindUIElementsInScene();
             UpdateAllObjectiveVisuals();
-            Debug.Log($"Objective {objectiveNumber} crossed out cross-scene!");
         }
     }
 
     private void UpdateAllObjectiveVisuals()
     {
+        if (BookManager.Instance == null) return;
+
         for (int i = 0; i < objectiveCrossOutLines.Count; i++)
         {
             if (objectiveCrossOutLines[i] != null)
             {
-                objectiveCrossOutLines[i].SetActive(completedObjectives[i]);
+                bool isCompleted = BookManager.Instance.IsObjectiveComplete(i + 1);
+                objectiveCrossOutLines[i].SetActive(isCompleted);
             }
         }
     }

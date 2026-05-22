@@ -4,79 +4,125 @@ using UnityEngine;
 
 public class book : MonoBehaviour
 {
-    [SerializeField] float pageSpeed = 1.5f;
-    [SerializeField] List<Transform> pages;
+    [Header("Book Settings")]
+    [SerializeField] private float pageSpeed = 1.5f;
+    [SerializeField] private List<Transform> pages;
 
-    // This list keeps track of which pages the player has found
+    [Header("Live Checklist (Check/Uncheck boxes to test live!)")]
+    [Tooltip("You can manually check/uncheck these boxes during Play Mode to test page visibility instantly!")]
     public List<bool> unlockedPages;
 
-    int index = -1;
-    bool rotate = false;
-    [SerializeField] GameObject backButton;
-    [SerializeField] GameObject forwardButton;
+    [Header("Navigation Buttons")]
+    [SerializeField] private GameObject backButton;
+    [SerializeField] private GameObject forwardButton;
+
+    private int index = -1;
+    private bool rotate = false;
 
     private void Start()
     {
-        // Initialize the unlocked list if it's empty
-        if (unlockedPages.Count == 0)
+        InitialState();
+    }
+
+    // Called automatically by Unity Editor when you toggle fields in the Inspector
+    private void OnValidate()
+    {
+        if (pages != null && (unlockedPages == null || unlockedPages.Count != pages.Count))
+        {
+            SyncInspectorChecklistSize();
+        }
+    }
+
+    private void Update()
+    {
+        // If you are playing and manually checking/unchecking boxes in the inspector,
+        // instantly push those values over to update the real GameObjects and BookManager state.
+        if (Application.isPlaying && BookManager.Instance != null)
         {
             for (int i = 0; i < pages.Count; i++)
             {
-                // Set first page (index 0) to true, others to false
-                unlockedPages.Add(i == 0);
+                if (i < unlockedPages.Count && i < BookManager.Instance.unlockedPages.Count)
+                {
+                    if (BookManager.Instance.unlockedPages[i] != unlockedPages[i])
+                    {
+                        BookManager.Instance.unlockedPages[i] = unlockedPages[i];
+                        RefreshPageVisibility();
+                    }
+                }
             }
         }
+    }
+
+    public void SyncAndRenderLayout()
+    {
         InitialState();
     }
 
     public void InitialState()
     {
+        index = -1;
+        if (BookManager.Instance == null) return;
+
+        SyncInspectorChecklistSize();
+
+        // Download data from global BookManager into our local interactive checklist
+        for (int i = 0; i < pages.Count; i++)
+        {
+            unlockedPages[i] = BookManager.Instance.IsPageUnlocked(i);
+        }
+
+        RefreshPageVisibility();
+    }
+
+    public void RefreshPageVisibility()
+    {
+        if (BookManager.Instance == null) return;
+
         for (int i = 0; i < pages.Count; i++)
         {
             if (pages[i] != null)
             {
                 pages[i].transform.rotation = Quaternion.identity;
-                // Only show the page if it is unlocked
-                pages[i].gameObject.SetActive(unlockedPages[i]);
+                bool isUnlocked = BookManager.Instance.IsPageUnlocked(i);
+                pages[i].gameObject.SetActive(isUnlocked);
             }
         }
 
-        // Stacking logic only for unlocked pages
+        // Handle UI overlay stacking hierarchies
         for (int i = pages.Count - 1; i >= 0; i--)
         {
-            if (pages[i] != null && unlockedPages[i])
+            if (pages[i] != null && BookManager.Instance.IsPageUnlocked(i))
+            {
                 pages[i].SetAsLastSibling();
+            }
         }
 
-        index = -1;
         if (backButton != null) backButton.SetActive(false);
-
-        // Forward button only shows if the NEXT page is unlocked
         CheckForwardButton();
     }
 
-    // Function to call when you pick up a page drop
+    private void SyncInspectorChecklistSize()
+    {
+        if (unlockedPages == null) unlockedPages = new List<bool>();
+        while (unlockedPages.Count < pages.Count) unlockedPages.Add(unlockedPages.Count == 0);
+        while (unlockedPages.Count > pages.Count) unlockedPages.RemoveAt(unlockedPages.Count - 1);
+    }
+
     public void UnlockPage(int pageIndex)
     {
-        if (pageIndex >= 0 && pageIndex < unlockedPages.Count)
+        if (BookManager.Instance != null)
         {
-            unlockedPages[pageIndex] = true;
-
-            // Debug here to make sure this code is actually running!
-            Debug.Log("Page " + pageIndex + " is now set to TRUE");
-
-            // Refresh the objects
+            BookManager.Instance.UnlockPageGlobal(pageIndex);
             InitialState();
         }
     }
 
     private void CheckForwardButton()
     {
-        if (forwardButton == null) return;
+        if (forwardButton == null || BookManager.Instance == null) return;
 
         int nextIndex = index + 1;
-        // Show forward button only if the next page exists AND is unlocked
-        if (nextIndex < pages.Count && unlockedPages[nextIndex])
+        if (nextIndex < pages.Count && BookManager.Instance.IsPageUnlocked(nextIndex))
         {
             forwardButton.SetActive(true);
         }
@@ -89,7 +135,7 @@ public class book : MonoBehaviour
     public void RotateForward()
     {
         int nextIndex = index + 1;
-        if (rotate || nextIndex >= pages.Count || !unlockedPages[nextIndex]) { return; }
+        if (BookManager.Instance == null || rotate || nextIndex >= pages.Count || !BookManager.Instance.IsPageUnlocked(nextIndex)) { return; }
 
         index++;
         float angle = 180;
@@ -114,7 +160,7 @@ public class book : MonoBehaviour
         StartCoroutine(Rotate(angle, false));
     }
 
-    IEnumerator Rotate(float angle, bool forward)
+    private IEnumerator Rotate(float angle, bool forward)
     {
         float value = 0f;
         while (true)
@@ -147,5 +193,6 @@ public class book : MonoBehaviour
         }
         StopAllCoroutines();
         rotate = false;
+        InitialState();
     }
 }

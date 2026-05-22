@@ -17,12 +17,14 @@ public class CraftingSystem : MonoBehaviour
     // --- Axe UI ---
     private Button craftAxeBTN;
     private TextMeshProUGUI AxeReq1, AxeReq2;
-    public Blueprint AxeBLP = new Blueprint("Axe", 2, "Stone", 3, "Stick", 3);
+    // FIXED: Added "Axe" as the first argument so it matches the 7 required parameters!
+    public Blueprint AxeBLP = new Blueprint("Axe", "Axe", 2, "Stone", 3, "Stick", 3);
 
     // --- Arrow UI ---
     private Button craftArrowBTN;
     private TextMeshProUGUI ArrowReq1, ArrowReq2;
-    public Blueprint ArrowBLP = new Blueprint("ArrowUI", 2, "Stone", 1, "Stick", 1);
+    // FIXED: Added "ArrowUI" as the first argument so it matches the 7 required parameters!
+    public Blueprint ArrowBLP = new Blueprint("ArrowUI", "ArrowUI", 2, "Stone", 1, "Stick", 1);
 
     public bool isOpen;
     public static CraftingSystem Instance { get; set; }
@@ -74,14 +76,32 @@ public class CraftingSystem : MonoBehaviour
 
     void CraftAnyItem(Blueprint blueprintToCraft)
     {
-        // 1. Determine how many items to give.
-        // If it's ArrowUI, give 10. Otherwise, give 1.
         int amountToGive = (blueprintToCraft.itemName == "ArrowUI") ? 10 : 1;
-
-        // 2. Add to inventory using the amountToGive variable
         InventorySystem.Instance.AddToInventory(blueprintToCraft.itemName, amountToGive);
 
-        // 3. Remove the requirements from the inventory
+        // --- CONNECT TO BOOKMANAGER FOR LINE 7 (CRAFT AXE) ---
+        if (blueprintToCraft.itemName == "Axe" && BookManager.Instance != null)
+        {
+            BookManager.Instance.CompleteObjective(7); // Triggers Line 7 Cross-out!
+            Debug.Log("Quest Complete: Crafted a primitive Axe!");
+        }
+
+        // --- TRIGGER CRAFTING NOTIFICATION ---
+        if (NotificationManager.Instance != null)
+        {
+            // If crafting ArrowUI, name it something nicer for the player pop-up
+            string standardName = (blueprintToCraft.itemName == "ArrowUI") ? "Arrow" : blueprintToCraft.itemName;
+
+            if (amountToGive > 1)
+            {
+                NotificationManager.Instance.ShowNotification($"Successfully Crafted {standardName} x{amountToGive}!");
+            }
+            else
+            {
+                NotificationManager.Instance.ShowNotification($"Successfully Crafted {standardName}!");
+            }
+        }
+
         if (blueprintToCraft.numOfRequirements == 1)
         {
             InventorySystem.Instance.RemoveItem(blueprintToCraft.Req1, blueprintToCraft.Req1amount);
@@ -92,20 +112,42 @@ public class CraftingSystem : MonoBehaviour
             InventorySystem.Instance.RemoveItem(blueprintToCraft.Req2, blueprintToCraft.Req2amount);
         }
 
-        // 4. Refresh everything
         InventorySystem.Instance.ReCalculateList();
         RefreshNeededItems();
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.C) && !BookManager.Instance.isBookOpen)
+        bool isBookOpen = (BookManager.Instance != null) && BookManager.Instance.isBookOpen;
+
+        if (Input.GetKeyDown(KeyCode.C) && !isBookOpen)
         {
-            if (!isOpen) OpenCrafting();
-            else CloseCrafting();
+            // --- SECURITY LOCK: CHECK FOR LINE 1, LINE 2, AND LINE 3 COMPLETIONS ---
+            if (CheckQuestRequirementsPassed())
+            {
+                if (!isOpen) OpenCrafting();
+                else CloseCrafting();
+            }
+            else
+            {
+                Debug.LogWarning("[Crafting System] Denied! You must cross out Line 1, Line 2, and Line 3 in your Logbook first.");
+            }
         }
 
         if (isOpen) RefreshNeededItems();
+    }
+
+    // --- CHECK PROGRESSION FOR LOCKOUT ---
+    private bool CheckQuestRequirementsPassed()
+    {
+        if (BookManager.Instance == null) return false;
+
+        // Pull status from safety helper method
+        bool line1Completed = BookManager.Instance.IsObjectiveComplete(1);
+        bool line2Completed = BookManager.Instance.IsObjectiveComplete(2);
+        bool line3Completed = BookManager.Instance.IsObjectiveComplete(3);
+
+        return line1Completed && line2Completed && line3Completed;
     }
 
     private void OpenCrafting()

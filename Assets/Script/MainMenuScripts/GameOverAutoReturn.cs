@@ -4,11 +4,12 @@ using System.Collections;
 
 public class GameOverAutoReturn : MonoBehaviour
 {
+    [Header("Return Settings")]
+    [Tooltip("How long to wait inside this scene to clear data structures before jumping back to Main Menu.")]
     public float delay = 2.5f;
 
     void Start()
     {
-        // If the MainMenu script says "isLongReturning", start the timer
         if (MainMenu.isLongReturning)
         {
             StartCoroutine(ReturnSequence());
@@ -17,12 +18,15 @@ public class GameOverAutoReturn : MonoBehaviour
 
     IEnumerator ReturnSequence()
     {
+        // 1. Wait out the cleaning delay behind the dark curtain overlay
         yield return new WaitForSecondsRealtime(delay);
 
-        // Reset the passport
+        // Reset the routing flag passport safely
         MainMenu.isLongReturning = false;
 
-        // Go back home
+        Debug.Log("[Auto Return] Purge delay completed. Loading true Main Menu layout scene...");
+
+        // 2. Load the MainMenu scene. (When it loads, it will automatically destroy this script safely)
         SceneManager.LoadScene("MainMenu");
     }
 }
